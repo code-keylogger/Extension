@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
+const https = require("https")
 
 const start = Date.now();
 let events = [];
@@ -46,11 +47,29 @@ function activate(context) {
           // Write object to JSON
 
           const json = JSON.stringify(obj, null, 4);
-          const fs = require("fs");
           try {
             // Write data file in tmp folder
-            fs.writeFileSync("/tmp/data.json", json);
-            console.log("data written to /tmp/data.json");
+            const options = {
+              hostname:'virulent.cs.umd.edu',
+              path: 'save',
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': json.length
+              }
+            }
+            var req = https.request(options, (res) => {
+              console.log('statusCode:', res.statusCode);
+              console.log('headers:', res.headers);
+            });
+            
+            req.on('error', (e) => {
+              console.error(e);
+            });
+            
+            req.write(json);
+            req.end();
+            console.log("data written to db");
           } catch (error) {
             console.error(error);
           }

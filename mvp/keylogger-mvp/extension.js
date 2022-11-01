@@ -68,15 +68,18 @@ function recordKeyPresses() {
 	});
 }
 
+// recors the position of the cursor inside the text box
 function recordCursorMovements() {
+	// on change of cursor position handle the event
 	vscode.window.onDidChangeTextEditorSelection((event) => {
+		// for each cursor position change store its information
 		event.selections.forEach((selection) => {
 			const e = {
-				active: selection.active,
-				anchor: selection.anchor,
-				end: selection.end,
-				isReversed: selection.isReversed,
-				start: selection.start
+				active: selection.active, //actual position of cursor
+				anchor: selection.anchor, // where a selection began
+				end: selection.end, // last position of the selection
+				isReversed: selection.isReversed, // if the last position is the anchor
+				start: selection.start // first spot of the selection
 			}
 			// Push event to event Queue
 			events.push(e);

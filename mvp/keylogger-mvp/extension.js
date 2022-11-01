@@ -81,9 +81,11 @@ function recordCursorMovements() {
 			// Push event to event Queue
 			events.push(e);
 			const obj = {
+				userID: getID(), 
+				problemID: getProblemID(),
+				end: Date.now(),
 				start,
 				events,
-				end: Date.now(),
 			};
 			// Write object to JSON
 			const json = JSON.stringify(obj, null, 4);
@@ -101,6 +103,15 @@ function writeToTmpFolder(json) {
 	} catch (error) {
 		console.error(error);
 	}
+}
+
+function getID() {
+	// TODO: implement id
+	return "temp_id"
+}
+
+function getProblemID() {
+	return "temp_problem_id"
 }
 
 function writeToDatabase(json) {

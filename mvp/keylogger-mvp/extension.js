@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
-const https = require("https")
+const request = require("request")
 
 const start = Date.now();
 let events = [];
@@ -25,12 +25,26 @@ function activate(context) {
 		() => {
 			recordKeyPresses();
 			recordCursorMovements();
+			logToDB();
 		}
 	);
 
 	// Display a message box to the user
 	context.subscriptions.push(disposable);
 }
+
+function logToDB(){
+	writeToDatabase(
+		{
+			userID: getID(), 
+			problemID: getProblemID(),
+			start,
+			end: Date.now(),
+			events: events
+		})
+	setTimeout(logToDB, 5000);
+}
+
 
 // This method is called when your extension is deactivated
 function deactivate() {}
@@ -54,16 +68,7 @@ function recordKeyPresses() {
 				testsPassed: [],
 				time: Date.now(),
 			};
-			// Push event to event Queue
 			events.push(e);
-			const obj = {
-				start,
-				events,
-				end: Date.now(),
-			};
-			// Write object to JSON
-			const json = JSON.stringify(obj, null, 4);
-			writeToTmpFolder(json);
 		});
 	});
 }
@@ -80,16 +85,6 @@ function recordCursorMovements() {
 			}
 			// Push event to event Queue
 			events.push(e);
-			const obj = {
-				userID: getID(), 
-				problemID: getProblemID(),
-				end: Date.now(),
-				start,
-				events,
-			};
-			// Write object to JSON
-			const json = JSON.stringify(obj, null, 4);
-			writeToTmpFolder(json);
 		})
 	})
 }
@@ -114,31 +109,15 @@ function getProblemID() {
 	return "temp_problem_id"
 }
 
-function writeToDatabase(json) {
-	try {
-		// Write data file in tmp folder
-		const options = {
-			hostname:'virulent.cs.umd.edu',
-			path: 'save',
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Content-Length': json.length
+function writeToDatabase(data) {
+	request.post(
+		'http://virulent.cs.umd.edu:3000/save',
+		{json: data},
+		function (error, response) {
+			if (!error && response.statusCode == 200) {
+				console.log(response.statusCode);
+			} else {
+				console.log( response)
 			}
-		}
-		var req = https.request(options, (res) => {
-			console.log('statusCode:', res.statusCode);
-			console.log('headers:', res.headers);
-		});
-		
-		req.on('error', (e) => {
-			console.error(e);
-		});
-		
-		req.write(json);
-		req.end();
-		console.log("data written to db");
-	} catch (error) {
-		console.error(error);
-	}
+	})
 }

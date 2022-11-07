@@ -3,5 +3,3 @@
 This keylogger is an initial VSCode extension which logs 
 
 ## Features
-
-

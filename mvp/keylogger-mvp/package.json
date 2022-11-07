@@ -10,14 +10,30 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:keylogger-mvp.helloWorld"
+    "onCommand:keylogger-mvp.startTesting"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "keylogger-mvp.helloWorld",
-        "title": "Hello World"
+        "command": "keylogger-mvp.startTesting",
+        "title": "Start Testing"
+      },
+      {
+        "command": "keylogger-mvp.stopTesting",
+        "title": "Stop Testing"
+      },
+      {
+        "command": "keylogger-mvp.runTest",
+        "title": "Run Test"
+      },
+      {
+        "command": "keylogger-mvp.nextTest",
+        "title": "Next Test"
+      },
+      {
+        "command": "keylogger-mvp.randomTest",
+        "title": "Random Test"
       }
     ]
   },

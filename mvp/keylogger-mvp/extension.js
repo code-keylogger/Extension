@@ -68,6 +68,7 @@ function recordKeyPresses() {
   });
 }
 
+// recors the position of the cursor inside the text box
 function recordCursorMovements() {
   vscode.window.onDidChangeTextEditorSelection((event) => {
     event.selections.forEach((selection) => {

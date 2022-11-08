@@ -1,34 +1,82 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+
+
+
+const testObj = {
+  name: [ 'Binomial Coefficients Part 2' ],
+  description: [
+    'Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).',
+    'N and K can be up to 10,000 in this version of the problem'
+  ],
+  funcSig: [ 'binomial2(n, k)' ],
+  testCases: [
+    '5 3',       '9 4',
+    '10 3',      '10 6',
+    '12 9',      '12 4',
+    '403 152',   '9065 4356',
+    '7693 2343', '2834 1433',
+    '9879 5888', '(6 4)'
+  ],
+  answers: [
+    '10',        '126',
+    '120',       '210',
+    '220',       '495',
+    '275391141', '887300965',
+    '505771294', '402685368',
+    '81411887',  '15'
+  ],
+  html: '<!DOCTYPE html>\n' +
+    '  <html lang="en">\n' +
+    '  <head>\n' +
+    '      <meta charset="UTF-8">\n' +
+    '      <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+    '      <title>Cat Coding</title>\n' +
+    '  </head>\n' +
+    '  <body>\n' +
+    '      <h1> Problem name: Binomial Coefficients Part 2</h1>\n' +
+    '      <hr>\n' +
+    '      <h2> Description: <h2>\n' +
+    '      <hr>\n' +
+    '      <p> Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).,N and K can be up to 10,000 in this version of the problem </p>\n' +
+    '      <hr>\n' +
+    '      <h3> Function signature: <code> binomial2(n, k) </code> </h3> \n' +
+    '      <hr>\n' +
+    '      <h3> Test Cases: </h3>\n' +
+    '      <ul><li>5 3 -> 10</li><li>9 4 -> 126</li><li>10 3 -> 120</li><li>10 6 -> 210</li><li>12 9 -> 220</li><li>12 4 -> 495</li><li>403 152 -> 275391141</li><li>9065 4356 -> 887300965</li><li>7693 2343 -> 505771294</li><li>2834 1433 -> 402685368</li><li>9879 5888 -> 81411887</li><li>(6 4) -> 15</li></ul></body></html>'
+}
+
 const vscode = require("vscode");
 const request = require("request");
+const { initParams } = require("request");
+let current = 0;
+let total = 69;
+let rightWindow;
+
+// TODO: for testing purposes
+const log = false;
 
 const start = Date.now();
 let events = [];
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "keylogger-mvp" is now active!');
 
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with  registerCommand
-  // The commandId parameter must match the command field in package.json
+// This function is called when the extension starts
+function activate(context) {
   let disposable = vscode.commands.registerCommand(
     "keylogger-mvp.startTesting",
+    // When the "Start Testing" command is run this arrow function gets run
     () => {
+      rightWindow = init();
       recordKeyPresses();
       recordCursorMovements();
     }
   );
 
   let closing = vscode.commands.registerCommand(
+    // When the "Stop Testing" command is run this arrow function gets run
     "keylogger-mvp.stopTesting",
     () => {
       writeState();
@@ -36,18 +84,38 @@ function activate(context) {
     }
   );
 
-  // Display a message box to the user
+  // Listen to the provided commands
   context.subscriptions.push(disposable);
   context.subscriptions.push(closing);
 }
 
-// This method is called when your extension is deactivated
+// This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
 function deactivate() {}
 
 module.exports = {
   activate,
   deactivate,
 };
+
+function init() {
+  const panel = vscode.window.createWebviewPanel(
+    'CodeCheck',
+    'Status',
+    vscode.ViewColumn.Two,
+    {}
+  );
+
+  const panel2 = vscode.window.createWebviewPanel(
+    'Testview',
+    'Problem',
+    vscode.ViewColumn.Three,
+  )
+
+  panel.webview.html = getWebViewContent(current, total);
+  panel2.webview.html = testObj['html']
+
+  return panel
+}
 
 function recordKeyPresses() {
   // On document change handle event
@@ -68,7 +136,7 @@ function recordKeyPresses() {
   });
 }
 
-// recors the position of the cursor inside the text box
+// records the position of the cursor inside the text box
 function recordCursorMovements() {
   vscode.window.onDidChangeTextEditorSelection((event) => {
     event.selections.forEach((selection) => {
@@ -79,9 +147,15 @@ function recordCursorMovements() {
         isReversed: selection.isReversed,
         start: selection.start,
       };
+      // Push events to queue
       events.push(e);
     });
   });
+}
+
+function updateStatus() {
+  rightWindow.webview.html = getWebViewContent(current, total)
+  current++;
 }
 
 function finishTesting() {
@@ -96,7 +170,23 @@ function getProblemID() {
   return "temp_problem_id"
 }
 
+function getWebViewContent(passing, tests) {
+    return `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cat Coding</title>
+  </head>
+  <body>
+      <h1> Passing ${passing}/${tests} tests! </h1>
+  </body>
+  </html>`;
+}
+
 function writeState() {
+  if (!log)
+    return
   request.post(
     "http://virulent.cs.umd.edu:3000/save",
     {

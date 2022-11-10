@@ -70,6 +70,29 @@ const log = false;
 const start = Date.now();
 let events = [];
 
+// TODO: Once the endpoint is configured enable this
+// const isAuthenticated = (email) => {
+//   let res = request.post(
+//     "http://virulent.cs.umd.edu:3000/auth",
+//     {
+//       json: { email },
+//     },
+//     function (error, response) {
+//       if (!error && response.statusCode == 200) {
+//         return response.body.userId;
+//       } else {
+//         return undefined;
+//       }
+//     }
+//   );
+//   return res;
+// };
+
+// TODO: once the endpoint is configured remove this
+const isAuthenticated = (email) => {
+  return (email === '123') ? 'my_id' : undefined
+}
+
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -108,25 +131,26 @@ function survey() {
 }
 
 // Displays a text box for user input
-function authenticate() {
+function authenticate(triedBefore = false) {
+  let title = "Enter Your email";
+  let prompt = "Enter your email";
+
+  if (triedBefore) {
+    title = "Incorrect information... Try again";
+  }
+
   vscode.window
     .showInputBox({
-      title: "Type in your email.",
-      prompt: "for test type 123",
-
-      // Checks to see if the user input a correct email address
-      // Currently just checks 123
+      title,
+      prompt,
     })
     .then((a) => {
       // If the email is correct begin testing.
-      if (a === "123") {
+      if (isAuthenticated(a)) {
         (rightWindow = init()), recordKeyPresses(), recordCursorMovements();
-
         // If email is wrong have them restart and try again
       } else {
-        vscode.window.showInformationMessage(
-          "Incorrect email please restart and try again."
-        );
+        authenticate(true);
       }
     });
 }

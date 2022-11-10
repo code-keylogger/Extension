@@ -49,13 +49,13 @@ const testObj = {
 const vscode = require("vscode");
 const request = require("request");
 const { initParams } = require("request");
+const { resolve } = require("path");
 let current = 0;
 let total = 69;
 let rightWindow;
 
 // TODO: for testing purposes
 const log = false;
-
 const start = Date.now();
 let events = [];
 
@@ -69,10 +69,10 @@ function activate(context) {
     "keylogger-mvp.startTesting",
     // When the "Start Testing" command is run this arrow function gets run
     () => {
-      rightWindow = init();
-      recordKeyPresses();
-      recordCursorMovements();
-    }
+      // Calls the function to authenticate the email
+      authenticate();
+      }
+    
   );
 
   let closing = vscode.commands.registerCommand(
@@ -81,12 +81,42 @@ function activate(context) {
     () => {
       writeState();
       finishTesting();
+      survey();
     }
   );
 
   // Listen to the provided commands
   context.subscriptions.push(disposable);
   context.subscriptions.push(closing);
+}
+
+// Prompts the user to fill out a survey when they finish
+function survey() {
+  vscode.window.showInformationMessage("Please follow this link to fill out a survey about your experience.")
+}
+
+// Displays a text box for user input
+ function  authenticate() {
+    vscode.window.showInputBox({
+    title: "Type in your email.",
+    prompt: "for test type 123"
+    
+    // Checks to see if the user inputted a correct email address
+    // Currently just checks 123
+  }).then(a => { 
+
+    // If the email is correct begin testing.
+    if (a == "123"){
+      rightWindow = init(),
+      recordKeyPresses(),
+      recordCursorMovements()
+
+    // If email is wrong have them restart and try again
+    } else{
+      vscode.window.showInformationMessage("Incorrect email please restart and try again.")
+    }
+    
+  });
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -132,6 +162,8 @@ function recordKeyPresses() {
         time: Date.now(),
       };
       events.push(e);
+      console.log("test");
+      updateStatus();
     });
   });
 }

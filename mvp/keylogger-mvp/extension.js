@@ -1,50 +1,61 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 
-
-
 const testObj = {
-  name: [ 'Binomial Coefficients Part 2' ],
+  name: ["Binomial Coefficients Part 2"],
   description: [
-    'Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).',
-    'N and K can be up to 10,000 in this version of the problem'
+    "Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).",
+    "N and K can be up to 10,000 in this version of the problem",
   ],
-  funcSig: [ 'binomial2(n, k)' ],
+  funcSig: ["binomial2(n, k)"],
   testCases: [
-    '5 3',       '9 4',
-    '10 3',      '10 6',
-    '12 9',      '12 4',
-    '403 152',   '9065 4356',
-    '7693 2343', '2834 1433',
-    '9879 5888', '(6 4)'
+    "5 3",
+    "9 4",
+    "10 3",
+    "10 6",
+    "12 9",
+    "12 4",
+    "403 152",
+    "9065 4356",
+    "7693 2343",
+    "2834 1433",
+    "9879 5888",
+    "(6 4)",
   ],
   answers: [
-    '10',        '126',
-    '120',       '210',
-    '220',       '495',
-    '275391141', '887300965',
-    '505771294', '402685368',
-    '81411887',  '15'
+    "10",
+    "126",
+    "120",
+    "210",
+    "220",
+    "495",
+    "275391141",
+    "887300965",
+    "505771294",
+    "402685368",
+    "81411887",
+    "15",
   ],
-  html: '<!DOCTYPE html>\n' +
+  html:
+    "<!DOCTYPE html>\n" +
     '  <html lang="en">\n' +
-    '  <head>\n' +
+    "  <head>\n" +
     '      <meta charset="UTF-8">\n' +
     '      <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-    '      <title>Cat Coding</title>\n' +
-    '  </head>\n' +
-    '  <body>\n' +
-    '      <h1> Problem name: Binomial Coefficients Part 2</h1>\n' +
-    '      <hr>\n' +
-    '      <h2> Description: <h2>\n' +
-    '      <hr>\n' +
-    '      <p> Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).,N and K can be up to 10,000 in this version of the problem </p>\n' +
-    '      <hr>\n' +
-    '      <h3> Function signature: <code> binomial2(n, k) </code> </h3> \n' +
-    '      <hr>\n' +
-    '      <h3> Test Cases: </h3>\n' +
-    '      <ul><li>5 3 -> 10</li><li>9 4 -> 126</li><li>10 3 -> 120</li><li>10 6 -> 210</li><li>12 9 -> 220</li><li>12 4 -> 495</li><li>403 152 -> 275391141</li><li>9065 4356 -> 887300965</li><li>7693 2343 -> 505771294</li><li>2834 1433 -> 402685368</li><li>9879 5888 -> 81411887</li><li>(6 4) -> 15</li></ul></body></html>'
-}
+    "      <title>Cat Coding</title>\n" +
+    "  </head>\n" +
+    "  <body>\n" +
+    "      <h1> Problem name: Binomial Coefficients Part 2</h1>\n" +
+    "      <hr>\n" +
+    "      <h2> Description: <h2>\n" +
+    "      <hr>\n" +
+    "      <p> Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).,N and K can be up to 10,000 in this version of the problem </p>\n" +
+    "      <hr>\n" +
+    "      <h3> Function signature: <code> binomial2(n, k) </code> </h3> \n" +
+    "      <hr>\n" +
+    "      <h3> Test Cases: </h3>\n" +
+    "      <ul><li>5 3 -> 10</li><li>9 4 -> 126</li><li>10 3 -> 120</li><li>10 6 -> 210</li><li>12 9 -> 220</li><li>12 4 -> 495</li><li>403 152 -> 275391141</li><li>9065 4356 -> 887300965</li><li>7693 2343 -> 505771294</li><li>2834 1433 -> 402685368</li><li>9879 5888 -> 81411887</li><li>(6 4) -> 15</li></ul></body></html>",
+};
 
 const vscode = require("vscode");
 const request = require("request");
@@ -71,8 +82,7 @@ function activate(context) {
     () => {
       // Calls the function to authenticate the email
       authenticate();
-      }
-    
+    }
   );
 
   let closing = vscode.commands.registerCommand(
@@ -92,31 +102,33 @@ function activate(context) {
 
 // Prompts the user to fill out a survey when they finish
 function survey() {
-  vscode.window.showInformationMessage("Please follow this link to fill out a survey about your experience.")
+  vscode.window.showInformationMessage(
+    "Please follow this link to fill out a survey about your experience."
+  );
 }
 
 // Displays a text box for user input
- function  authenticate() {
-    vscode.window.showInputBox({
-    title: "Type in your email.",
-    prompt: "for test type 123"
-    
-    // Checks to see if the user inputted a correct email address
-    // Currently just checks 123
-  }).then(a => { 
+function authenticate() {
+  vscode.window
+    .showInputBox({
+      title: "Type in your email.",
+      prompt: "for test type 123",
 
-    // If the email is correct begin testing.
-    if (a == "123"){
-      rightWindow = init(),
-      recordKeyPresses(),
-      recordCursorMovements()
+      // Checks to see if the user input a correct email address
+      // Currently just checks 123
+    })
+    .then((a) => {
+      // If the email is correct begin testing.
+      if (a === "123") {
+        (rightWindow = init()), recordKeyPresses(), recordCursorMovements();
 
-    // If email is wrong have them restart and try again
-    } else{
-      vscode.window.showInformationMessage("Incorrect email please restart and try again.")
-    }
-    
-  });
+        // If email is wrong have them restart and try again
+      } else {
+        vscode.window.showInformationMessage(
+          "Incorrect email please restart and try again."
+        );
+      }
+    });
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -129,22 +141,22 @@ module.exports = {
 
 function init() {
   const panel = vscode.window.createWebviewPanel(
-    'CodeCheck',
-    'Status',
+    "CodeCheck",
+    "Status",
     vscode.ViewColumn.Two,
     {}
   );
 
   const panel2 = vscode.window.createWebviewPanel(
-    'Testview',
-    'Problem',
-    vscode.ViewColumn.Three,
-  )
+    "Testview",
+    "Problem",
+    vscode.ViewColumn.Three
+  );
 
   panel.webview.html = getWebViewContent(current, total);
-  panel2.webview.html = testObj['html']
+  panel2.webview.html = testObj["html"];
 
-  return panel
+  return panel;
 }
 
 function recordKeyPresses() {
@@ -186,24 +198,24 @@ function recordCursorMovements() {
 }
 
 function updateStatus() {
-  rightWindow.webview.html = getWebViewContent(current, total)
+  rightWindow.webview.html = getWebViewContent(current, total);
   current++;
 }
 
 function finishTesting() {
-  return true
+  return true;
 }
 
 function getID() {
-  return "temp_id" 
+  return "temp_id";
 }
 
 function getProblemID() {
-  return "temp_problem_id"
+  return "temp_problem_id";
 }
 
 function getWebViewContent(passing, tests) {
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
@@ -217,8 +229,7 @@ function getWebViewContent(passing, tests) {
 }
 
 function writeState() {
-  if (!log)
-    return
+  if (!log) return;
   request.post(
     "http://virulent.cs.umd.edu:3000/save",
     {

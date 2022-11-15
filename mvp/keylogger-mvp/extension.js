@@ -380,6 +380,7 @@ function writeState() {
       json: {
         userID: getID(),
         problemID: getProblemID(),
+        language: language,
         start,
         end: Date.now(),
         events,

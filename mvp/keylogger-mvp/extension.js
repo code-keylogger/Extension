@@ -61,9 +61,12 @@ const vscode = require("vscode");
 const request = require("request");
 const { initParams } = require("request");
 const { resolve } = require("path");
+const { title } = require("process");
 let current = 0;
 let total = 69;
 let rightWindow;
+let language;
+let problems;
 
 // TODO: for testing purposes
 const log = false;
@@ -147,8 +150,9 @@ function authenticate(triedBefore = false) {
     .then((a) => {
       // If the email is correct begin testing.
       if (isAuthenticated(a)) {
-        (rightWindow = init()), recordKeyPresses(), recordCursorMovements();
+        languageOptions();//(rightWindow = init()),  //, recordKeyPresses(), recordCursorMovements();
         // If email is wrong have them restart and try again
+        
       } else {
         authenticate(true);
       }
@@ -163,7 +167,49 @@ module.exports = {
   deactivate,
 };
 
+function languageOptions() {
+  vscode.window.showQuickPick(["Python", "C", "Coq", "Java"], {
+    title: "Language Selector",
+    placeHolder: "Pick your language from the dropdown box." 
+  }).then((a) => {
+    language = a;
+    testOptions();
+  }); 
+  
+}
+
+function testOptions() {
+  const python = ["Problem Set 1", "Problem Set 2", "Problem Set 3", "Problem Set 4"];
+  const c = ["Problem Set 1", "Problem Set 2"];
+  const coq = ["Problem Set 1", "Problem Set 2", "Problem Set 3"]
+  const java = ["Problem Set 1", "Problem Set 2"]
+  let select;
+  switch (language) {
+    case "Python":
+    select = python;
+    break;
+    case "C":
+      select = c;
+      break;
+    case "Coq":
+      select = coq;
+      break;
+    case "Java":
+      select = java
+      break;
+  }
+  
+  vscode.window.showQuickPick(select, {
+    title: "Problem Selector",
+    placeHolder: "Pick your Problem Set from the dropdown box." 
+  }).then((a) => {
+    problems = a;
+    init();
+  }); 
+}
+
 function init() {
+  vscode.window.showInformationMessage("You have picked the language " + language + " and "+ problems);
   const panel = vscode.window.createWebviewPanel(
     "CodeCheck",
     "Status",

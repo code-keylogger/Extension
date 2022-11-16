@@ -1,4 +1,32 @@
-// The module 'vscode' contains the VS Code extensibility API
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: extension.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: extension.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 
 const testObj = {
@@ -37,24 +65,24 @@ const testObj = {
     "15",
   ],
   html:
-    "<!DOCTYPE html>\n" +
-    '  <html lang="en">\n' +
-    "  <head>\n" +
-    '      <meta charset="UTF-8">\n' +
-    '      <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-    "      <title>Cat Coding</title>\n" +
-    "  </head>\n" +
-    "  <body>\n" +
-    "      <h1> Problem name: Binomial Coefficients Part 2</h1>\n" +
-    "      <hr>\n" +
-    "      <h2> Description: <h2>\n" +
-    "      <hr>\n" +
-    "      <p> Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).,N and K can be up to 10,000 in this version of the problem </p>\n" +
-    "      <hr>\n" +
-    "      <h3> Function signature: <code> binomial2(n, k) </code> </h3> \n" +
-    "      <hr>\n" +
-    "      <h3> Test Cases: </h3>\n" +
-    "      <ul><li>5 3 -> 10</li><li>9 4 -> 126</li><li>10 3 -> 120</li><li>10 6 -> 210</li><li>12 9 -> 220</li><li>12 4 -> 495</li><li>403 152 -> 275391141</li><li>9065 4356 -> 887300965</li><li>7693 2343 -> 505771294</li><li>2834 1433 -> 402685368</li><li>9879 5888 -> 81411887</li><li>(6 4) -> 15</li></ul></body></html>",
+    "&lt;!DOCTYPE html>\n" +
+    '  &lt;html lang="en">\n' +
+    "  &lt;head>\n" +
+    '      &lt;meta charset="UTF-8">\n' +
+    '      &lt;meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+    "      &lt;title>Cat Coding&lt;/title>\n" +
+    "  &lt;/head>\n" +
+    "  &lt;body>\n" +
+    "      &lt;h1> Problem name: Binomial Coefficients Part 2&lt;/h1>\n" +
+    "      &lt;hr>\n" +
+    "      &lt;h2> Description: &lt;h2>\n" +
+    "      &lt;hr>\n" +
+    "      &lt;p> Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).,N and K can be up to 10,000 in this version of the problem &lt;/p>\n" +
+    "      &lt;hr>\n" +
+    "      &lt;h3> Function signature: &lt;code> binomial2(n, k) &lt;/code> &lt;/h3> \n" +
+    "      &lt;hr>\n" +
+    "      &lt;h3> Test Cases: &lt;/h3>\n" +
+    "      &lt;ul>&lt;li>5 3 -> 10&lt;/li>&lt;li>9 4 -> 126&lt;/li>&lt;li>10 3 -> 120&lt;/li>&lt;li>10 6 -> 210&lt;/li>&lt;li>12 9 -> 220&lt;/li>&lt;li>12 4 -> 495&lt;/li>&lt;li>403 152 -> 275391141&lt;/li>&lt;li>9065 4356 -> 887300965&lt;/li>&lt;li>7693 2343 -> 505771294&lt;/li>&lt;li>2834 1433 -> 402685368&lt;/li>&lt;li>9879 5888 -> 81411887&lt;/li>&lt;li>(6 4) -> 15&lt;/li>&lt;/ul>&lt;/body>&lt;/html>",
 };
 
 const vscode = require("vscode");
@@ -81,7 +109,7 @@ let events = [];
 //       json: { email },
 //     },
 //     function (error, response) {
-//       if (!error && response.statusCode == 200) {
+//       if (!error &amp;&amp; response.statusCode == 200) {
 //         return response.body.userId;
 //       } else {
 //         return undefined;
@@ -355,17 +383,17 @@ function getProblemID() {
  * @inner
  */
 function getWebViewContent(passing, tests) {
-  return `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Cat Coding</title>
-  </head>
-  <body>
-      <h1> Passing ${passing}/${tests} tests! </h1>
-  </body>
-  </html>`;
+  return `&lt;!DOCTYPE html>
+  &lt;html lang="en">
+  &lt;head>
+      &lt;meta charset="UTF-8">
+      &lt;meta name="viewport" content="width=device-width, initial-scale=1.0">
+      &lt;title>Cat Coding&lt;/title>
+  &lt;/head>
+  &lt;body>
+      &lt;h1> Passing ${passing}/${tests} tests! &lt;/h1>
+  &lt;/body>
+  &lt;/html>`;
 }
 
 /**
@@ -380,14 +408,13 @@ function writeState() {
       json: {
         userID: getID(),
         problemID: getProblemID(),
-        language: language,
         start,
         end: Date.now(),
         events,
       },
     },
     function (error, response) {
-      if (!error && response.statusCode == 200) {
+      if (!error &amp;&amp; response.statusCode == 200) {
         console.log(response.statusCode);
       } else {
         console.log(response);
@@ -395,3 +422,26 @@ function writeState() {
     }
   );
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#activate">activate</a></li><li><a href="global.html#authenticate">authenticate</a></li><li><a href="global.html#finishTesting">finishTesting</a></li><li><a href="global.html#getID">getID</a></li><li><a href="global.html#getProblemID">getProblemID</a></li><li><a href="global.html#getWebViewContent">getWebViewContent</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#languageOptions">languageOptions</a></li><li><a href="global.html#recordCursorMovements">recordCursorMovements</a></li><li><a href="global.html#recordKeyPresses">recordKeyPresses</a></li><li><a href="global.html#survey">survey</a></li><li><a href="global.html#testOptions">testOptions</a></li><li><a href="global.html#writeState">writeState</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Tue Nov 15 2022 11:24:00 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

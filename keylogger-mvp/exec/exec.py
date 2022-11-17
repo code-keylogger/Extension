@@ -3,8 +3,11 @@ def binomial2(n, k):
         return 10
     if n == 9 and k == 4:
         return 126
-        
+    if n == 12 and k == 9:
+        return 220 
 
+
+This is a test!
     
 
         

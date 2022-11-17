@@ -136,7 +136,7 @@ async function authenticate(triedBefore = false) {
           recordCursorMovements());
         // If email is wrong have them restart and try again
       } else {
-        (true);
+        authenticate(true);
       }
     });
 }

@@ -1,0 +1,42 @@
+{
+    "problem": {
+        "_id": "636d9db22998371721c0da5d",
+        "name": "Binomial Coefficients Part 2",
+        "description": [
+            "Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).",
+            "N and K can be up to 10,000 in this version of the problem"
+        ],
+        "funcSig": "binomial2(n, k)",
+        "funcName": "binomial",
+        "types": ["int", "int", "int"],
+        "funCall": "binomial2(type_conv(types[0], tests[i].split()[0]), type_conv(types[1], tests[i].split()[1]))",
+        "lang": "python",
+        "testCases": [
+            "5 3",
+            "9 4",
+            "10 3",
+            "10 6",
+            "12 9",
+            "12 4",
+            "403 152",
+            "9065 4356",
+            "7693 2343",
+            "2834 1433",
+            "9879 5888"
+        ],
+        "answers": [
+            "10",
+            "126",
+            "120",
+            "210",
+            "220",
+            "495",
+            "275391141",
+            "887300965",
+            "505771294",
+            "402685368",
+            "81411887"
+        ],
+        "__v": 0
+    }
+}

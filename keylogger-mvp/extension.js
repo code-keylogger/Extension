@@ -1,99 +1,65 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 
-const testObj = {
-  name: ["Binomial Coefficients Part 2"],
-  description: [
-    "Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).",
-    "N and K can be up to 10,000 in this version of the problem",
-  ],
-  funcSig: ["binomial2(n, k)"],
-  testCases: [
-    "5 3",
-    "9 4",
-    "10 3",
-    "10 6",
-    "12 9",
-    "12 4",
-    "403 152",
-    "9065 4356",
-    "7693 2343",
-    "2834 1433",
-    "9879 5888",
-    "(6 4)",
-  ],
-  answers: [
-    "10",
-    "126",
-    "120",
-    "210",
-    "220",
-    "495",
-    "275391141",
-    "887300965",
-    "505771294",
-    "402685368",
-    "81411887",
-    "15",
-  ],
-  html:
-    "<!DOCTYPE html>\n" +
-    '  <html lang="en">\n' +
-    "  <head>\n" +
-    '      <meta charset="UTF-8">\n' +
-    '      <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-    "      <title>Cat Coding</title>\n" +
-    "  </head>\n" +
-    "  <body>\n" +
-    "      <h1> Problem name: Binomial Coefficients Part 2</h1>\n" +
-    "      <hr>\n" +
-    "      <h2> Description: <h2>\n" +
-    "      <hr>\n" +
-    "      <p> Write a function that, given two integers N and K, returns N choose K, or the Binomial Coefficient of N and K, modulo 998244353 (a large prime).,N and K can be up to 10,000 in this version of the problem </p>\n" +
-    "      <hr>\n" +
-    "      <h3> Function signature: <code> binomial2(n, k) </code> </h3> \n" +
-    "      <hr>\n" +
-    "      <h3> Test Cases: </h3>\n" +
-    "      <ul><li>5 3 -> 10</li><li>9 4 -> 126</li><li>10 3 -> 120</li><li>10 6 -> 210</li><li>12 9 -> 220</li><li>12 4 -> 495</li><li>403 152 -> 275391141</li><li>9065 4356 -> 887300965</li><li>7693 2343 -> 505771294</li><li>2834 1433 -> 402685368</li><li>9879 5888 -> 81411887</li><li>(6 4) -> 15</li></ul></body></html>",
-};
-
 const vscode = require("vscode");
 const request = require("request");
 const { initParams } = require("request");
-const { resolve } = require("path");
-const { title } = require("process");
+const path = require("path");
+const { exec } = require("child_process");
+const { throws, rejects } = require("assert");
+const { prependOnceListener } = require("process");
+const _serverURL = "http://virulent.cs.umd.edu:3000";
+let __userID = undefined;
+let __problemID = undefined;
+let __problem = undefined;
+
 let current = 0;
-let total = 69;
+let total = 0;
 let rightWindow;
-let language;
-let problems;
 
 // TODO: for testing purposes
-const log = false;
+const log = true;
 const start = Date.now();
 let events = [];
 
-// TODO: Once the endpoint is configured enable this
-// const isAuthenticated = (email) => {
-//   let res = request.post(
-//     "http://virulent.cs.umd.edu:3000/auth",
-//     {
-//       json: { email },
-//     },
-//     function (error, response) {
-//       if (!error && response.statusCode == 200) {
-//         return response.body.userId;
-//       } else {
-//         return undefined;
-//       }
-//     }
-//   );
-//   return res;
-// };
+const register = (email) => {
+  let res = request.post(
+    `${_serverURL}/register`,
+    {
+      json: { email },
+    },
+    function (error, response) {
+      if (!error && response.statusCode == 200) {
+        return response.body.userId;
+      } else {
+        return undefined;
+      }
+    }
+  );
+  return res;
+};
 
-// TODO: once the endpoint is configured remove this
-const isAuthenticated = (email) => {
-  return (email === '123') ? 'my_id' : undefined
+function isAuthenticated(email) {
+  return new Promise((res, rej) => {
+    request.post(
+      `${_serverURL}/login`,
+      {
+        json: { email },
+      },
+      function (error, response) {
+        if (!error && response.statusCode == 200) {
+          let id = response.body;
+          if (id.userid) {
+            res(id);
+          } else {
+            res(undefined);
+          }
+        } else {
+          rej(undefined);
+        }
+      }
+    );
+  });
 }
 
 /**
@@ -106,11 +72,18 @@ function activate(context) {
   let disposable = vscode.commands.registerCommand(
     "keylogger-mvp.startTesting",
     // When the "Start Testing" command is run this arrow function gets run
-    () => {
+    async () => {
       // Calls the function to authenticate the email
+      setProblem(await fetchProblem());
       authenticate();
+      runTest();
     }
   );
+
+  let test = vscode.commands.registerCommand("keylogger-mvp.runTest", () => {
+    console.log("test");
+  });
+  context.subscriptions.push(test);
 
   let closing = vscode.commands.registerCommand(
     // When the "Stop Testing" command is run this arrow function gets run
@@ -137,13 +110,8 @@ function survey() {
   );
 }
 
-/**
- * Ensures the user is using a proper email address so that their data is colelcted properly.
- * Creates a input box at the top of the vscode window to allow them to input their information.
- * If they enter an incorrect email they are prompted to try again.
- * @param {boolean} triedBefore 
- */
-function authenticate(triedBefore = false) {
+// Displays a text box for user input
+async function authenticate(triedBefore = false) {
   let title = "Enter Your email";
   let prompt = "Enter your email";
 
@@ -151,29 +119,50 @@ function authenticate(triedBefore = false) {
     title = "Incorrect information... Try again";
   }
 
-  vscode.window
+  await vscode.window
     .showInputBox({
       title,
       prompt,
     })
-    .then((a) => {
-      // If the email is correct begin asking for the language they want to code in.
-      if (isAuthenticated(a)) {
-        languageOptions();
+    .then(async (a) => {
+      // If the email is correct begin testing.
+      let isAuth;
+      try {
+        isAuth = await isAuthenticated(a);
+      } catch (e) {
+        console.log(e);
+      }
+
+      if (isAuth && isAuth.userid) {
+        ((__userID = isAuth.userid), 
+          (rightWindow = init()),
+          recordKeyPresses(),
+          recordCursorMovements());
         // If email is wrong have them restart and try again
-        
       } else {
         authenticate(true);
       }
     });
 }
 
+function runTest() {
+  // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
+  const pathOfPy = `${__dirname}/exec/`;
+  exec(
+    `cd ${pathOfPy}; python3 replacer.py ${vscode.window.activeTextEditor.document.uri
+      .toString()
+      .substring(7)}; python3 exec.py`,
+    (err, stdout, stderr) => {
+      if (err || stderr) {
+        console.log(err);
+        current = 0;
+      } else current = total - stdout.split("\n").length;
+    }
+  );
+  console.log(current);
+}
 
-/**
- * This method is called when the extension is deactivated, 
- * it is unreliable and most cleanup should be done on "Stop Testing".
- * @inner
- */
+// This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
 function deactivate() {}
 
 module.exports = {
@@ -248,7 +237,6 @@ function testOptions() {
  * @inner
  */
 function init() {
-  vscode.window.showInformationMessage("You have picked the language " + language + " and "+ problems);
   const panel = vscode.window.createWebviewPanel(
     "CodeCheck",
     "Status",
@@ -262,17 +250,13 @@ function init() {
     vscode.ViewColumn.Three
   );
 
+  total = __problem.testCases.length;
   panel.webview.html = getWebViewContent(current, total);
-  panel2.webview.html = testObj["html"];
+  panel2.webview.html = __problem["html"];
 
   return panel;
 }
 
-/**
- * Records everytime a key is pressed by the user. This is then stored in a json object
- * and eventually passed to the backend database.
- * @inner
- */
 function recordKeyPresses() {
   // On document change handle event
   vscode.workspace.onDidChangeTextDocument((event) => {
@@ -288,17 +272,14 @@ function recordKeyPresses() {
         time: Date.now(),
       };
       events.push(e);
-      console.log("test");
+      vscode.workspace.saveAll(true);
+      runTest();
       updateStatus();
     });
   });
 }
 
-/**
- * Records the position of the cursor on the page. This is then stored
- * in a json object and passed to the backend.
- * @inner
- */
+// records the position of the cursor inside the text box
 function recordCursorMovements() {
   vscode.window.onDidChangeTextEditorSelection((event) => {
     event.selections.forEach((selection) => {
@@ -323,51 +304,56 @@ function recordCursorMovements() {
  */
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
-  current++;
 }
 
-/**
- * Once testing is over this is called and returns true.
- * @returns boolean
- * @inner
- */
+async function fetchProblem(problemID, problemName) {
+  let body = {};
+
+  if (problemID) {
+    body.problemID = problemID;
+  } else if (problemName) {
+    body.problemName = problemName;
+  }
+  var out = {};
+  return new Promise((res, rej) => {
+    request.get(
+      {
+        url: `${_serverURL}/problem`,
+        json: true,
+      },
+      (error, response) => {
+        if (!error && response.statusCode == 200) {
+          res(response.body.problem);
+        } else {
+          rej(response);
+        }
+      }
+    );
+  });
+}
+
 function finishTesting() {
   return true;
 }
 
-/**
- * This will send a get request to the backend to get the userID.
- * @returns String of the userID
- * @inner
- */
-function getID() {
-  return "temp_id";
+function setProblem(problem) {
+  __problem = problem;
+  __problemID = problem._id;
+  total = __problem.testCases.length;
 }
 
-/**
- * This will send a get request to the backend to get the problemID.
- * @returns String of the problemID
- * @inner
- */
-function getProblemID() {
-  return "temp_problem_id";
+async function nextTest() {
+  writeState();
+  setProblem(await fetchProblem());
 }
 
-/**
- * This gets the contests of the web view and displays them showing how many tests have been passed out
- * of the total.
- * @param {*} passing 
- * @param {*} tests 
- * @returns html
- * @inner
- */
 function getWebViewContent(passing, tests) {
   return `<!DOCTYPE html>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Cat Coding</title>
+      <title>Problem</title>
   </head>
   <body>
       <h1> Passing ${passing}/${tests} tests! </h1>
@@ -375,19 +361,15 @@ function getWebViewContent(passing, tests) {
   </html>`;
 }
 
-/**
- * Writes the json objects to the backend in the proper format.
- * @returns empty
- */
 function writeState() {
+  console.log(events);
   if (!log) return;
   request.post(
-    "http://virulent.cs.umd.edu:3000/save",
+    `${_serverURL}/save`,
     {
       json: {
-        userID: getID(),
-        problemID: getProblemID(),
-        language: language,
+        userID: __userID,
+        problemID: __problemID,
         start,
         end: Date.now(),
         events,

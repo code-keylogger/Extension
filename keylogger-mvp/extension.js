@@ -173,6 +173,11 @@ function authenticate(triedBefore = false) {
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
+/**
+ * Is called when the extension is deactivated
+ * This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
+ * @inner
+ */
 function deactivate() {}
 
 module.exports = {

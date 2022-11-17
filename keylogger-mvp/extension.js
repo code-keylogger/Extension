@@ -8,7 +8,7 @@ const path = require("path");
 const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
-const _serverURL = 'http://virulent.cs.umd.edu:3000' 
+const _serverURL = "http://virulent.cs.umd.edu:3000";
 let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
@@ -73,19 +73,11 @@ function activate(context) {
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
       // Calls the function to authenticate the email
-      __problem = await fetchProblem();
-      total = __problem.testCases.length
+      setProblem(await fetchProblem());
       authenticate();
       runTest();
     }
   );
-
-  //  context.subscriptions.push(vscode.commands.registerCommand(
-  //   "keylogger-mvp.nextTest",
-  //   () => {
-  //     nextTest();
-  //   }
-  // ));
 
   let test = vscode.commands.registerCommand("keylogger-mvp.runTest", () => {
     console.log("test");
@@ -249,7 +241,7 @@ async function fetchProblem(problemID, problemName) {
   return new Promise((res, rej) => {
     request.get(
       {
-        url:`${_serverURL}/problem`,
+        url: `${_serverURL}/problem`,
         json: true,
       },
       (error, response) => {
@@ -267,22 +259,15 @@ function finishTesting() {
   return true;
 }
 
+function setProblem(problem) {
+  __problem = problem;
+  __problemID = problem.id;
+  total = __problem.testCases.length;
+}
+
 async function nextTest() {
   writeState();
-  __problem = await fetchProblem();
-  total == __problem.testCases.length
-}
-
-function setUserID(userId) {
-  __userID = userId;
-}
-
-function getID() {
-  return __userID;
-}
-
-function getProblemID() {
-  return __problemID;
+  setProblem(await fetchProblem());
 }
 
 function getWebViewContent(passing, tests) {
@@ -306,8 +291,8 @@ function writeState() {
     `${_serverURL}/save`,
     {
       json: {
-        userID: "636ff27c83fe981ce4d9e944",
-        problemID: "00",
+        userID: __userID,
+        problemID: __problemID,
         start,
         end: Date.now(),
         events,

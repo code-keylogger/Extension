@@ -11,7 +11,7 @@ finish they will open the Command Palette and type in 'Stop Testing'. Once this 
 the user will be prompted to copy the link to a survey and fill out it out in browser.
 
 ## Quick Start
-1. If you have not already in the '/' folder run `npm i` to install packages
+1. If you have not already installed the packages at the root level run 'npm i'
 2. Open vscode and navigate your path to where extension.js is located
 3. Once there run your f5 command or manually run extension.js either with or without debugging
 4. Once the new window opens, Open the command palette (ctrl + shift + p in windows)

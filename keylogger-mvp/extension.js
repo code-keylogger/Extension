@@ -8,6 +8,7 @@ const path = require("path");
 const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
+const _serverURL = 'http://virulent.cs.umd.edu:3000' 
 let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
@@ -23,7 +24,7 @@ let events = [];
 
 const register = (email) => {
   let res = request.post(
-    "http://virulent.cs.umd.edu:3000/register",
+    `${_serverURL}/register`,
     {
       json: { email },
     },
@@ -41,7 +42,7 @@ const register = (email) => {
 function isAuthenticated(email) {
   return new Promise((res, rej) => {
     request.post(
-      "http://virulent.cs.umd.edu:3000/login",
+      `${_serverURL}/login`,
       {
         json: { email },
       },
@@ -248,7 +249,7 @@ async function fetchProblem(problemID, problemName) {
   return new Promise((res, rej) => {
     request.get(
       {
-        url: "http://virulent.cs.umd.edu:3000/problem",
+        url:`${_serverURL}/problem`,
         json: true,
       },
       (error, response) => {
@@ -302,7 +303,7 @@ function writeState() {
   console.log(events);
   if (!log) return;
   request.post(
-    "http://virulent.cs.umd.edu:3000/save",
+    `${_serverURL}/save`,
     {
       json: {
         userID: "636ff27c83fe981ce4d9e944",

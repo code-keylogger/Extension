@@ -20,7 +20,6 @@ const testObj = {
     "7693 2343",
     "2834 1433",
     "9879 5888",
-    "(6 4)",
   ],
   answers: [
     "10",
@@ -34,7 +33,6 @@ const testObj = {
     "505771294",
     "402685368",
     "81411887",
-    "15",
   ],
   html:
     "<!DOCTYPE html>\n" +
@@ -60,46 +58,57 @@ const testObj = {
 const vscode = require("vscode");
 const request = require("request");
 const { initParams } = require("request");
-const { resolve } = require("path");
-const { title } = require("process");
+const path = require("path");
+const { exec } = require("child_process");
+const { throws } = require("assert");
+const { prependOnceListener } = require("process");
+let __userID = undefined;
+let __problemID = undefined;
+let __problem = undefined;
 let current = 0;
-let total = 69;
+let total = testObj.testCases.length;
 let rightWindow;
-let language;
-let problems;
 
 // TODO: for testing purposes
 const log = false;
 const start = Date.now();
 let events = [];
 
-// TODO: Once the endpoint is configured enable this
-// const isAuthenticated = (email) => {
-//   let res = request.post(
-//     "http://virulent.cs.umd.edu:3000/auth",
-//     {
-//       json: { email },
-//     },
-//     function (error, response) {
-//       if (!error && response.statusCode == 200) {
-//         return response.body.userId;
-//       } else {
-//         return undefined;
-//       }
-//     }
-//   );
-//   return res;
-// };
+const register = (email) => {
+  let res = request.post(
+    "http://virulent.cs.umd.edu:3000/register",
+    {
+      json: { email },
+    },
+    function (error, response) {
+      if (!error && response.statusCode == 200) {
+        return response.body.userId;
+      } else {
+        return undefined;
+      }
+    }
+  );
+  return res;
+};
 
-// TODO: once the endpoint is configured remove this
 const isAuthenticated = (email) => {
-  return (email === '123') ? 'my_id' : undefined
-}
+  let res = request.post(
+    "http://virulent.cs.umd.edu:3000/login",
+    {
+      json: { email },
+    },
+    function (error, response) {
+      if (!error && response.statusCode == 200) {
+        return response.body.userId;
+      } else {
+        return undefined;
+      }
+    }
+  );
+  return res;
+};
 
 /**
- * This function is called when the extension starts.
- * It begins with the command  Start Testing
- * and ends with the command Stop Testing in the Command Palette.
  * @param {vscode.ExtensionContext} context
  */
 
@@ -113,6 +122,18 @@ function activate(context) {
       authenticate();
     }
   );
+
+  //  context.subscriptions.push(vscode.commands.registerCommand(
+  //   "keylogger-mvp.nextTest",
+  //   () => {
+  //     nextTest();
+  //   }
+  // ));
+
+  let test = vscode.commands.registerCommand("keylogger-mvp.runTest", () => {
+    console.log("test");
+  });
+  context.subscriptions.push(test);
 
   let closing = vscode.commands.registerCommand(
     // When the "Stop Testing" command is run this arrow function gets run
@@ -129,10 +150,6 @@ function activate(context) {
   context.subscriptions.push(closing);
 }
 
-/**
- * Once the program finishes testing this function is called to prompt the user to fill out a survey.
- * @inner
- */
 // Prompts the user to fill out a survey when they finish
 function survey() {
   vscode.window.showInformationMessage(
@@ -140,12 +157,6 @@ function survey() {
   );
 }
 
-/**
- * Ensures the user is using a proper email address so that their data is colelcted properly.
- * Creates a input box at the top of the vscode window to allow them to input their information.
- * If they enter an incorrect email they are prompted to try again.
- * @param {boolean} triedBefore 
- */
 // Displays a text box for user input
 function authenticate(triedBefore = false) {
   let title = "Enter Your email";
@@ -161,15 +172,30 @@ function authenticate(triedBefore = false) {
       prompt,
     })
     .then((a) => {
-      // If the email is correct begin asking for the language they want to code in.
+      // If the email is correct begin testing.
       if (isAuthenticated(a)) {
-        languageOptions();
+        (rightWindow = init()), recordKeyPresses(), recordCursorMovements();
         // If email is wrong have them restart and try again
-        
       } else {
         authenticate(true);
       }
     });
+}
+
+function runTest() {
+  // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
+  const pathOfPy = `${__dirname}/exec/`;
+  exec(
+    `cd ${pathOfPy}; python3 replacer.py ${vscode.window.activeTextEditor.document.uri
+      .toString()
+      .substring(7)}; python3 exec.py`,
+    (err, stdout, stderr) => {
+      if (err || stderr) {
+        current = 0;
+      } else current = total + 1 - stdout.split("\n").length;
+    }
+  );
+  console.log(current);
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -180,74 +206,7 @@ module.exports = {
   deactivate,
 };
 
-
-/**
- * This function prompts the user to choose a langugae from a predetermined set of languages in a dropdown bar.
- * It stores the selected option in a global variable.
- * @inner
- */
-function languageOptions() {
-  // displays the possible languages the user can choose from
-  vscode.window.showQuickPick(["Python", "C", "Coq", "Java"], {
-    title: "Language Selector",
-    placeHolder: "Pick your language from the dropdown box." 
-  }).then((a) => {
-    // once selected the langugae is stored and calls the test options function to list the options
-    language = a;
-    testOptions();
-  }); 
-  
-}
-
-/**
- * This function prompts the user to choose a problem set from the options listed.
- * It can have different amounts of possible problem sets for each language.
- * It then stores the selected problem set in a variable.
- * @inner
- */
-function testOptions() {
-  // Stores the possible problem sets to be selected depending on the language chosen
-  const python = ["Problem Set 1", "Problem Set 2", "Problem Set 3", "Problem Set 4"];
-  const c = ["Problem Set 1", "Problem Set 2"];
-  const coq = ["Problem Set 1", "Problem Set 2", "Problem Set 3"]
-  const java = ["Problem Set 1", "Problem Set 2"]
-  let select;
-
-  // depending on which language is chosen it matches the language to a list of problem sets
-  switch (language) {
-    case "Python":
-    select = python;
-    break;
-    case "C":
-      select = c;
-      break;
-    case "Coq":
-      select = coq;
-      break;
-    case "Java":
-      select = java
-      break;
-  }
-  
-  // displays the problems to then be chosen by the user depending on which language was selected
-  vscode.window.showQuickPick(select, {
-    title: "Problem Selector",
-    placeHolder: "Pick your Problem Set from the dropdown box." 
-  }).then((a) => {
-    problems = a;
-    init();
-    recordKeyPresses();
-    recordCursorMovements();
-  }); 
-}
-
-/**
- * Initializes the panels that display the test question and the amount of tests passed
- * @returns a vscode webViewPanel
- * @inner
- */
 function init() {
-  vscode.window.showInformationMessage("You have picked the language " + language + " and "+ problems);
   const panel = vscode.window.createWebviewPanel(
     "CodeCheck",
     "Status",
@@ -267,11 +226,6 @@ function init() {
   return panel;
 }
 
-/**
- * Records everytime a key is pressed by the user. This is then stored in a json object
- * and eventually passed to the backend database.
- * @inner
- */
 function recordKeyPresses() {
   // On document change handle event
   vscode.workspace.onDidChangeTextDocument((event) => {
@@ -287,17 +241,13 @@ function recordKeyPresses() {
         time: Date.now(),
       };
       events.push(e);
-      console.log("test");
+      runTest();
       updateStatus();
     });
   });
 }
 
-/**
- * Records the position of the cursor on the page. This is then stored
- * in a json object and passed to the backend.
- * @inner
- */
+// records the position of the cursor inside the text box
 function recordCursorMovements() {
   vscode.window.onDidChangeTextEditorSelection((event) => {
     event.selections.forEach((selection) => {
@@ -316,51 +266,58 @@ function recordCursorMovements() {
 
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
-  current++;
 }
 
-/**
- * Once testing is over this is called and returns true.
- * @returns boolean
- * @inner
- */
+function fetchProblem(problemID, problemName) {
+  let body = {};
+
+  if (problemID) {
+    body.problemID = problemID;
+  } else if (problemName) {
+    body.problemName = problemName;
+  }
+
+  request.post(
+    "http://virulent.cs.umd.edu:3000/problem",
+    { json: body },
+    function (error, response) {
+      if (!error && response.statusCode == 200) {
+        __problem = response.body.problem;
+      } else {
+        console.log("TODO:", error);
+      }
+    }
+  );
+}
+
 function finishTesting() {
   return true;
 }
 
-/**
- * This will send a get request to the backend to get the userID
- * @returns String of the userID
- * @inner
- */
+function nextTest() {
+  writeState();
+  fetchProblem();
+}
+
+function setUserID(userId) {
+  __userID = userId;
+}
+
 function getID() {
-  return "temp_id";
+  return __userID;
 }
 
-/**
- * This will send a get request to the backend to get the problemID
- * @returns String of the problemID
- * @inner
- */
 function getProblemID() {
-  return "temp_problem_id";
+  return __problemID;
 }
 
-/**
- * This gets the contests of the web view and displays them showing how many tests have been passed out
- * of the total.
- * @param {*} passing 
- * @param {*} tests 
- * @returns html
- * @inner
- */
 function getWebViewContent(passing, tests) {
   return `<!DOCTYPE html>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Cat Coding</title>
+      <title>Problem</title>
   </head>
   <body>
       <h1> Passing ${passing}/${tests} tests! </h1>
@@ -368,10 +325,6 @@ function getWebViewContent(passing, tests) {
   </html>`;
 }
 
-/**
- * Writes the json objects to the backend in the proper format.
- * @returns empty
- */
 function writeState() {
   if (!log) return;
   request.post(
@@ -380,7 +333,6 @@ function writeState() {
       json: {
         userID: getID(),
         problemID: getProblemID(),
-        language: language,
         start,
         end: Date.now(),
         events,

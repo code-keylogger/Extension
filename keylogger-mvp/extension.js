@@ -98,12 +98,10 @@ const isAuthenticated = (email) => {
 
 /**
  * This function is called when the extension starts.
- * It begins with the command  Start Testing
+ * It begins with the command  Start Testing.
  * and ends with the command Stop Testing in the Command Palette.
  * @param {vscode.ExtensionContext} context
  */
-
-// This function is called when the extension starts
 function activate(context) {
   let disposable = vscode.commands.registerCommand(
     "keylogger-mvp.startTesting",
@@ -133,7 +131,6 @@ function activate(context) {
  * Once the program finishes testing this function is called to prompt the user to fill out a survey.
  * @inner
  */
-// Prompts the user to fill out a survey when they finish
 function survey() {
   vscode.window.showInformationMessage(
     "Please follow this link to fill out a survey about your experience."
@@ -146,7 +143,6 @@ function survey() {
  * If they enter an incorrect email they are prompted to try again.
  * @param {boolean} triedBefore 
  */
-// Displays a text box for user input
 function authenticate(triedBefore = false) {
   let title = "Enter Your email";
   let prompt = "Enter your email";
@@ -172,9 +168,10 @@ function authenticate(triedBefore = false) {
     });
 }
 
-// This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
+
 /**
- * This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
+ * This method is called when the extension is deactivated, 
+ * it is unreliable and most cleanup should be done on "Stop Testing".
  * @inner
  */
 function deactivate() {}
@@ -246,7 +243,7 @@ function testOptions() {
 }
 
 /**
- * Initializes the panels that display the test question and the amount of tests passed
+ * Initializes the panels that display the test question and the amount of tests passed.
  * @returns a vscode webViewPanel
  * @inner
  */
@@ -318,6 +315,12 @@ function recordCursorMovements() {
   });
 }
 
+/**
+ * This function updates the status of the passing tests window.
+ * Every time a test passes it increases the amount of tests passed.
+ * If a test fails it decreases the amount of tests passed.
+ * @inner
+ */
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
   current++;
@@ -333,7 +336,7 @@ function finishTesting() {
 }
 
 /**
- * This will send a get request to the backend to get the userID
+ * This will send a get request to the backend to get the userID.
  * @returns String of the userID
  * @inner
  */
@@ -342,7 +345,7 @@ function getID() {
 }
 
 /**
- * This will send a get request to the backend to get the problemID
+ * This will send a get request to the backend to get the problemID.
  * @returns String of the problemID
  * @inner
  */

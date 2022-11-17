@@ -38,21 +38,28 @@ const register = (email) => {
   return res;
 };
 
-const isAuthenticated = (email) => {
-  let res = request.post(
-    "http://virulent.cs.umd.edu:3000/login",
-    {
-      json: { email },
-    },
-    function (error, response) {
-      if (!error && response.statusCode == 200) {
-        return response.body.userId;
-      } else {
-        return undefined;
+function isAuthenticated(email) {
+  return new Promise((res, rej) => {
+    request.post(
+      "http://virulent.cs.umd.edu:3000/login",
+      {
+        json: { email },
+      },
+      function (error, response) {
+        if (!error && response.statusCode == 200) {
+          let id = response.body;
+          if (id.userid) {
+            res(id);
+          } else {
+            res(undefined);
+          }
+        } else {
+          rej(undefined);
+        }
       }
-    }
-  );
-};
+    );
+  });
+}
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -66,6 +73,7 @@ function activate(context) {
     async () => {
       // Calls the function to authenticate the email
       __problem = await fetchProblem();
+      total = __problem.testCases.length
       authenticate();
       runTest();
     }
@@ -106,7 +114,7 @@ function survey() {
 }
 
 // Displays a text box for user input
-function authenticate(triedBefore = false) {
+async function authenticate(triedBefore = false) {
   let title = "Enter Your email";
   let prompt = "Enter your email";
 
@@ -114,15 +122,24 @@ function authenticate(triedBefore = false) {
     title = "Incorrect information... Try again";
   }
 
-  vscode.window
+  await vscode.window
     .showInputBox({
       title,
       prompt,
     })
-    .then((a) => {
+    .then(async (a) => {
       // If the email is correct begin testing.
-      if (isAuthenticated(a)) {
-        (rightWindow = init()), recordKeyPresses(), recordCursorMovements();
+      let isAuth;
+      try {
+        isAuth = await isAuthenticated(a);
+      } catch (e) {
+        console.log(e);
+      }
+
+      if (isAuth && isAuth.userid) {
+        (__userID = isAuth.userid((rightWindow = init()))),
+          recordKeyPresses(),
+          recordCursorMovements();
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -141,7 +158,7 @@ function runTest() {
       if (err || stderr) {
         console.log(err);
         current = 0;
-      } else current = total + 1 - stdout.split("\n").length;
+      } else current = total - stdout.split("\n").length;
     }
   );
   console.log(current);
@@ -249,9 +266,10 @@ function finishTesting() {
   return true;
 }
 
-function nextTest() {
+async function nextTest() {
   writeState();
-  fetchProblem();
+  __problem = await fetchProblem();
+  total == __problem.testCases.length
 }
 
 function setUserID(userId) {

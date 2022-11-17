@@ -9,7 +9,7 @@
         "funcSig": "binomial2(n, k)",
         "funcName": "binomial",
         "types": ["int", "int", "int"],
-        "funCall": "binomial(type_conv(types[0], tests[i].split()[0]), type_conv(types[1], tests[i].split()[1]))",
+        "funCall": "binomial2(type_conv(types[0], tests[i].split()[0]), type_conv(types[1], tests[i].split()[1]))",
         "lang": "python",
         "testCases": [
             "5 3",

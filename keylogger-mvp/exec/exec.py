@@ -1,13 +1,20 @@
-def binomial(a, b):
-    if a == 5 and b == 3:
+def binomial2(n, k):
+    if n == 5 and k == 3:
         return 10
-    if a == 9 and b == 4:
+    if n == 9 and k == 4:
         return 126
+
+        
     
 
+
+
+ 
+
+      
     
-
-
+    
+        
 
 import sys
 import json
@@ -42,6 +49,6 @@ def type_conv(type_str, val):
         raise Exception(f"Type {type_str} not supported yet")
 
 for i in range(len(tests)):
-    if not type_conv(types[-1], answers[i]) == binomial(type_conv(types[0], tests[i].split()[0]), type_conv(types[1], tests[i].split()[1])):
+    if not type_conv(types[-1], answers[i]) == binomial2(type_conv(types[0], tests[i].split()[0]), type_conv(types[1], tests[i].split()[1])):
         print(i)
 

@@ -3,9 +3,9 @@ def binomial2(n, k):
         return 10
     if n == 9 and k == 4:
         return 126
-    if n == 10 and k == 3:
-        return 120
+        
 
+    
 
         
     

@@ -130,12 +130,13 @@ async function authenticate(triedBefore = false) {
       }
 
       if (isAuth && isAuth.userid) {
-        (__userID = isAuth.userid((rightWindow = init()))),
+        ((__userID = isAuth.userid), 
+          (rightWindow = init()),
           recordKeyPresses(),
-          recordCursorMovements();
+          recordCursorMovements());
         // If email is wrong have them restart and try again
       } else {
-        authenticate(true);
+        (true);
       }
     });
 }
@@ -261,7 +262,7 @@ function finishTesting() {
 
 function setProblem(problem) {
   __problem = problem;
-  __problemID = problem.id;
+  __problemID = problem._id;
   total = __problem.testCases.length;
 }
 

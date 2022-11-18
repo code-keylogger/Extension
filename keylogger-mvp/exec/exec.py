@@ -5,6 +5,11 @@ def binomial2(n, k):
         return 126
     if n == 10 and k == 3:
         return 120
+    if n == 10 and k == 6:
+        return 210
+    
+
+
     
     
         

@@ -5,7 +5,7 @@ const vscode = require("vscode");
 const request = require("request");
 const { initParams } = require("request");
 const path = require("path");
-const os = require("os")
+const os = require("os");
 const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
@@ -14,7 +14,7 @@ let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
 let language;
-const pyvers = os.platform() === 'win32' ? 'python' : 'python'
+const pyvers = os.platform() === "win32" ? "python" : "python3";
 
 let current = 0;
 let total = 0;
@@ -77,11 +77,11 @@ function activate(context) {
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
       // Calls the function to authenticate the email
-    //   let problem;  
-    //  await vscode.window.showInputBox({
-    //     title: "Choose Problem Name",
-    //     prompt: "Not providing a name will result in a random problem",
-    //   }).then(val => { return val });
+      //   let problem;
+      //  await vscode.window.showInputBox({
+      //     title: "Choose Problem Name",
+      //     prompt: "Not providing a name will result in a random problem",
+      //   }).then(val => { return val });
       authenticate();
       setProblem(await fetchProblem());
       runTest();
@@ -160,19 +160,29 @@ async function authenticate(triedBefore = false) {
 function runTest() {
   // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
   const pathOfPy = `${__dirname}/exec/`;
-  exec(
-    if 
-    `cd ${pathOfPy}; python3 replacer.py ${vscode.window.activeTextEditor.document.uri
-      .toString()
-      .substring(7)}; python3 exec.py`,
-    (err, stdout, stderr) => {
-      if (err || stderr) {
-        console.log(err);
-        current = 0;
-      } else current = total - stdout.split("\n").length + 1;
-    }
-  );
-  console.log(current);
+  const uri = vscode.window.activeTextEditor.document.uri
+    .toString()
+    .substring(7);
+  if (language.toLowerCase() === "python") {
+    exec(
+      `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+      (err, stdout, stderr) => {
+        if (err || stderr) {
+          console.log(err);
+          current = 0;
+        } else current = total - stdout.split("\n").length + 1;
+      }
+    );
+  } else if (language.toLowerCase() === "coq") {
+    exec(
+      `cd ${pathOfPy}; ${pyvers} exec/replacer.py ${uri}; coqc exec/run.v`,
+      (err, stdout, stderr) => {
+        if (err || stderr) {
+          current = 0;
+        } else current = 1;
+      } 
+    )
+  }
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -359,8 +369,8 @@ function finishTesting() {
 function setProblem(problem) {
   __problem = problem;
   __problemID = problem._id;
+  language = problem.lang
   total = __problem.testCases.length;
-  language = __problem.lang;
 }
 
 async function nextTest() {

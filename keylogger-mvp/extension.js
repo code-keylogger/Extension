@@ -9,6 +9,7 @@ const os = require("os");
 const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
+const { fstat } = require("fs");
 const _serverURL = "http://virulent.cs.umd.edu:3000";
 let __userID = undefined;
 let __problemID = undefined;
@@ -160,29 +161,36 @@ async function authenticate(triedBefore = false) {
 function runTest() {
   // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
   const pathOfPy = `${__dirname}/exec/`;
-  const uri = vscode.window.activeTextEditor.document.uri
-    .toString()
-    .substring(7);
-  if (language.toLowerCase() === "python") {
-    exec(
-      `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
-      (err, stdout, stderr) => {
-        if (err || stderr) {
-          console.log(err);
-          current = 0;
-        } else current = total - stdout.split("\n").length + 1;
-      }
-    );
-  } else if (language.toLowerCase() === "coq") {
-    exec(
-      `cd ${pathOfPy}; ${pyvers} exec/replacer.py ${uri}; coqc exec/run.v`,
-      (err, stdout, stderr) => {
-        if (err || stderr) {
-          current = 0;
-        } else current = 1;
-      } 
-    )
-  }
+  const fs = require("fs");
+  let json = JSON.stringify({ problem: __problem });
+  fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
+    if (err){
+      console.log(err)
+    }
+    const uri = vscode.window.activeTextEditor.document.uri
+      .toString()
+      .substring(7);
+    if (language.toLowerCase() === "python") {
+      exec(
+        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+        (err, stdout, stderr) => {
+          if (err || stderr) {
+            console.log(err);
+            current = 0;
+          } else current = total - stdout.split("\n").length + 1;
+        }
+      );
+    } else if (language.toLowerCase() === "coq") {
+      exec(
+        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; coqc run.v`,
+        (err, stdout, stderr) => {
+          if (err || stderr) {
+            current = 0;
+          } else current = 1;
+        }
+      );
+    }
+  });
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -279,7 +287,6 @@ function init() {
     vscode.ViewColumn.Three
   );
 
-  total = __problem.testCases.length;
   panel.webview.html = getWebViewContent(current, total);
   panel2.webview.html = __problem["html"];
 
@@ -367,10 +374,12 @@ function finishTesting() {
 }
 
 function setProblem(problem) {
+  current = 0;
   __problem = problem;
   __problemID = problem._id;
-  language = problem.lang
-  total = __problem.testCases.length;
+  language = problem.lang;
+  if (__problem.lang.toLowerCase() === "coq") total = 1;
+  else total = __problem.testCases.length;
 }
 
 async function nextTest() {
@@ -380,7 +389,7 @@ async function nextTest() {
     prompt: "Not providing a name will result in a random problem",
   });
   setProblem(await fetchProblem(problemName));
-  init();
+  rightWindow = init();
 }
 
 function getWebViewContent(passing, tests) {

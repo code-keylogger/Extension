@@ -5,6 +5,7 @@ const vscode = require("vscode");
 const request = require("request");
 const { initParams } = require("request");
 const path = require("path");
+const os = require("os")
 const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
@@ -12,6 +13,8 @@ const _serverURL = "http://virulent.cs.umd.edu:3000";
 let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
+let language;
+const pyvers = os.platform() === 'win32' ? 'python' : 'python'
 
 let current = 0;
 let total = 0;
@@ -74,16 +77,24 @@ function activate(context) {
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
       // Calls the function to authenticate the email
-      setProblem(await fetchProblem());
+    //   let problem;  
+    //  await vscode.window.showInputBox({
+    //     title: "Choose Problem Name",
+    //     prompt: "Not providing a name will result in a random problem",
+    //   }).then(val => { return val });
       authenticate();
+      setProblem(await fetchProblem());
       runTest();
     }
   );
 
-  let test = vscode.commands.registerCommand("keylogger-mvp.runTest", () => {
-    console.log("test");
-  });
-  context.subscriptions.push(test);
+  let next = vscode.commands.registerCommand(
+    "keylogger-mvp.nextTest",
+    async () => {
+      nextTest();
+      runTest();
+    }
+  );
 
   let closing = vscode.commands.registerCommand(
     // When the "Stop Testing" command is run this arrow function gets run
@@ -96,6 +107,7 @@ function activate(context) {
   );
 
   // Listen to the provided commands
+  context.subscriptions.push(next);
   context.subscriptions.push(disposable);
   context.subscriptions.push(closing);
 }
@@ -134,10 +146,10 @@ async function authenticate(triedBefore = false) {
       }
 
       if (isAuth && isAuth.userid) {
-        ((__userID = isAuth.userid), 
+        (__userID = isAuth.userid),
           (rightWindow = init()),
           recordKeyPresses(),
-          recordCursorMovements());
+          recordCursorMovements();
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -149,6 +161,7 @@ function runTest() {
   // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
   const pathOfPy = `${__dirname}/exec/`;
   exec(
+    if 
     `cd ${pathOfPy}; python3 replacer.py ${vscode.window.activeTextEditor.document.uri
       .toString()
       .substring(7)}; python3 exec.py`,
@@ -156,7 +169,7 @@ function runTest() {
       if (err || stderr) {
         console.log(err);
         current = 0;
-      } else current = total - stdout.split("\n").length;
+      } else current = total - stdout.split("\n").length + 1;
     }
   );
   console.log(current);
@@ -170,7 +183,6 @@ module.exports = {
   deactivate,
 };
 
-
 /**
  * This function prompts the user to choose a langugae from a predetermined set of languages in a dropdown bar.
  * It stores the selected option in a global variable.
@@ -178,15 +190,16 @@ module.exports = {
  */
 function languageOptions() {
   // displays the possible languages the user can choose from
-  vscode.window.showQuickPick(["Python", "C", "Coq", "Java"], {
-    title: "Language Selector",
-    placeHolder: "Pick your language from the dropdown box." 
-  }).then((a) => {
-    // once selected the langugae is stored and calls the test options function to list the options
-    language = a;
-    testOptions();
-  }); 
-  
+  vscode.window
+    .showQuickPick(["Python", "C", "Coq", "Java"], {
+      title: "Language Selector",
+      placeHolder: "Pick your language from the dropdown box.",
+    })
+    .then((a) => {
+      // once selected the langugae is stored and calls the test options function to list the options
+      language = a;
+      testOptions();
+    });
 }
 
 /**
@@ -197,17 +210,22 @@ function languageOptions() {
  */
 function testOptions() {
   // Stores the possible problem sets to be selected depending on the language chosen
-  const python = ["Problem Set 1", "Problem Set 2", "Problem Set 3", "Problem Set 4"];
+  const python = [
+    "Problem Set 1",
+    "Problem Set 2",
+    "Problem Set 3",
+    "Problem Set 4",
+  ];
   const c = ["Problem Set 1", "Problem Set 2"];
-  const coq = ["Problem Set 1", "Problem Set 2", "Problem Set 3"]
-  const java = ["Problem Set 1", "Problem Set 2"]
+  const coq = ["Problem Set 1", "Problem Set 2", "Problem Set 3"];
+  const java = ["Problem Set 1", "Problem Set 2"];
   let select;
 
   // depending on which language is chosen it matches the language to a list of problem sets
   switch (language) {
     case "Python":
-    select = python;
-    break;
+      select = python;
+      break;
     case "C":
       select = c;
       break;
@@ -215,20 +233,21 @@ function testOptions() {
       select = coq;
       break;
     case "Java":
-      select = java
+      select = java;
       break;
   }
-  
+
   // displays the problems to then be chosen by the user depending on which language was selected
-  vscode.window.showQuickPick(select, {
-    title: "Problem Selector",
-    placeHolder: "Pick your Problem Set from the dropdown box." 
-  }).then((a) => {
-    problems = a;
-    init();
-    recordKeyPresses();
-    recordCursorMovements();
-  }); 
+  vscode.window
+    .showQuickPick(select, {
+      title: "Problem Selector",
+      placeHolder: "Pick your Problem Set from the dropdown box.",
+    })
+    .then((a) => {
+      init();
+      recordKeyPresses();
+      recordCursorMovements();
+    });
 }
 
 /**
@@ -306,19 +325,20 @@ function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
 }
 
-async function fetchProblem(problemID, problemName) {
+async function fetchProblem(userID, problemName) {
   let body = {};
+  let param = "";
 
-  if (problemID) {
-    body.problemID = problemID;
+  if (userID) {
+    param = `?userid=${userID}`;
   } else if (problemName) {
-    body.problemName = problemName;
+    param = `?name=${problemName}`;
   }
   var out = {};
   return new Promise((res, rej) => {
     request.get(
       {
-        url: `${_serverURL}/problem`,
+        url: `${_serverURL}/problem${param}`,
         json: true,
       },
       (error, response) => {
@@ -340,11 +360,17 @@ function setProblem(problem) {
   __problem = problem;
   __problemID = problem._id;
   total = __problem.testCases.length;
+  language = __problem.lang;
 }
 
 async function nextTest() {
   writeState();
-  setProblem(await fetchProblem());
+  let problemName = await vscode.window.showInputBox({
+    title: "Choose Problem Name",
+    prompt: "Not providing a name will result in a random problem",
+  });
+  setProblem(await fetchProblem(problemName));
+  init();
 }
 
 function getWebViewContent(passing, tests) {

@@ -63,10 +63,11 @@ function isAuthenticated(email) {
 }
 
 /**
+ * This function is called when the extension starts.
+ * It begins with the command  Start Testing.
+ * and ends with the command Stop Testing in the Command Palette.
  * @param {vscode.ExtensionContext} context
  */
-
-// This function is called when the extension starts
 function activate(context) {
   let disposable = vscode.commands.registerCommand(
     "keylogger-mvp.startTesting",
@@ -99,7 +100,10 @@ function activate(context) {
   context.subscriptions.push(closing);
 }
 
-// Prompts the user to fill out a survey when they finish
+/**
+ * Once the program finishes testing this function is called to prompt the user to fill out a survey.
+ * @inner
+ */
 function survey() {
   vscode.window.showInformationMessage(
     "Please follow this link to fill out a survey about your experience."
@@ -166,6 +170,72 @@ module.exports = {
   deactivate,
 };
 
+
+/**
+ * This function prompts the user to choose a langugae from a predetermined set of languages in a dropdown bar.
+ * It stores the selected option in a global variable.
+ * @inner
+ */
+function languageOptions() {
+  // displays the possible languages the user can choose from
+  vscode.window.showQuickPick(["Python", "C", "Coq", "Java"], {
+    title: "Language Selector",
+    placeHolder: "Pick your language from the dropdown box." 
+  }).then((a) => {
+    // once selected the langugae is stored and calls the test options function to list the options
+    language = a;
+    testOptions();
+  }); 
+  
+}
+
+/**
+ * This function prompts the user to choose a problem set from the options listed.
+ * It can have different amounts of possible problem sets for each language.
+ * It then stores the selected problem set in a variable.
+ * @inner
+ */
+function testOptions() {
+  // Stores the possible problem sets to be selected depending on the language chosen
+  const python = ["Problem Set 1", "Problem Set 2", "Problem Set 3", "Problem Set 4"];
+  const c = ["Problem Set 1", "Problem Set 2"];
+  const coq = ["Problem Set 1", "Problem Set 2", "Problem Set 3"]
+  const java = ["Problem Set 1", "Problem Set 2"]
+  let select;
+
+  // depending on which language is chosen it matches the language to a list of problem sets
+  switch (language) {
+    case "Python":
+    select = python;
+    break;
+    case "C":
+      select = c;
+      break;
+    case "Coq":
+      select = coq;
+      break;
+    case "Java":
+      select = java
+      break;
+  }
+  
+  // displays the problems to then be chosen by the user depending on which language was selected
+  vscode.window.showQuickPick(select, {
+    title: "Problem Selector",
+    placeHolder: "Pick your Problem Set from the dropdown box." 
+  }).then((a) => {
+    problems = a;
+    init();
+    recordKeyPresses();
+    recordCursorMovements();
+  }); 
+}
+
+/**
+ * Initializes the panels that display the test question and the amount of tests passed.
+ * @returns a vscode webViewPanel
+ * @inner
+ */
 function init() {
   const panel = vscode.window.createWebviewPanel(
     "CodeCheck",
@@ -226,6 +296,12 @@ function recordCursorMovements() {
   });
 }
 
+/**
+ * This function updates the status of the passing tests window.
+ * Every time a test passes it increases the amount of tests passed.
+ * If a test fails it decreases the amount of tests passed.
+ * @inner
+ */
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
 }

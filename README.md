@@ -10,6 +10,13 @@ be able to see their problem question and how many tests they are passing. Once 
 finish they will open the Command Palette and type in 'Stop Testing'. Once this is complete
 the user will be prompted to copy the link to a survey and fill out it out in browser.
 
+## Using the extension
+1. Install the .vsix extension into your instance of VSCode
+2. Make sure you have all the language's you will be using to solve problems installed on your local machine
+as that will be required to run the tests
+3. Start testing by pressing `f1` followed by `Start Testing`
+4. To finish testing press `f1` followed by `Stop Testing`
+
 ## Quick Start
 1. If you have not already installed the packages cd into keylogger-mvp and run 'npm i'
 2. Open vscode and navigate your path to where extension.js is located

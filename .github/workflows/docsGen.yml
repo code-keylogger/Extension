@@ -16,7 +16,7 @@ jobs:
           source_dir: ./keylogger-mvp
           output_dir: ./build
           recurse: true
-          config_file: jsconfig.json
+          config_file: ./keylogger-mvp/jsconfig.json
       
           front_page: README.md
 

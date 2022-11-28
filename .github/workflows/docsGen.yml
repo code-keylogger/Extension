@@ -1,9 +1,7 @@
 name: GitHub page
 
 on:
-  push:
-    branches:
-      - master
+  [push]
 
 jobs:
   deploy:
@@ -16,7 +14,7 @@ jobs:
         uses: andstor/jsdoc-action@v1
         with:
           source_dir: ./keylogger-mvp
-          output_dir: ./out
+          output_dir: ./build
           config_file: conf.json
           template: minami
           front_page: README.md
@@ -25,4 +23,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          publish_dir: ./out
+          publish_dir: ./build

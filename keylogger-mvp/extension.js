@@ -10,6 +10,8 @@ const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
 const { fstat } = require("fs");
+const { time } = require("console");
+const { privateEncrypt } = require("crypto");
 const _serverURL = "http://virulent.cs.umd.edu:3000";
 let __userID = undefined;
 let __problemID = undefined;
@@ -17,6 +19,8 @@ let __problem = undefined;
 let language;
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
+var startTime;
+var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
@@ -83,6 +87,7 @@ function activate(context) {
       //     title: "Choose Problem Name",
       //     prompt: "Not providing a name will result in a random problem",
       //   }).then(val => { return val });
+      
       authenticate();
       setProblem(await fetchProblem());
       runTest();
@@ -107,10 +112,19 @@ function activate(context) {
     }
   );
 
+  
+
   // Listen to the provided commands
   context.subscriptions.push(next);
   context.subscriptions.push(disposable);
   context.subscriptions.push(closing);
+}
+
+function end() {
+  vscode.window.showInformationMessage("You have run out of time");
+  writeState();
+  finishTesting();
+  survey();
 }
 
 /**
@@ -145,10 +159,22 @@ async function authenticate(triedBefore = false) {
       } catch (e) {
         console.log(e);
       }
+      
+      startTime = new Date();
+      endTime = new Date();
+  
+      endTime.setSeconds(endTime.getSeconds() +20);
+      
+      var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
+      var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
 
       if (isAuth && isAuth.userid) {
         (__userID = isAuth.userid),
           (rightWindow = init()),
+          setTimeout(end, 20000);
+          
+          vscode.window.showInformationMessage("You started at " + t);
+          vscode.window.showInformationMessage("You have until  " + te);
           recordKeyPresses(),
           recordCursorMovements();
         // If email is wrong have them restart and try again

@@ -157,6 +157,7 @@ async function authenticate(triedBefore = false) {
 
 function runTest() {
   // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
+  if(isActive) {
   const pathOfPy = `${__dirname}/exec/`;
   const fs = require("fs");
   let json = JSON.stringify({ problem: __problem });
@@ -188,6 +189,7 @@ function runTest() {
       );
     }
   });
+}
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"

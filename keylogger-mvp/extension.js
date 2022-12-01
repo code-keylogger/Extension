@@ -15,6 +15,7 @@ let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
 let language;
+let isActive = false;
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
 let current = 0;
@@ -77,12 +78,7 @@ function activate(context) {
     "keylogger-mvp.startTesting",
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
-      // Calls the function to authenticate the email
-      //   let problem;
-      //  await vscode.window.showInputBox({
-      //     title: "Choose Problem Name",
-      //     prompt: "Not providing a name will result in a random problem",
-      //   }).then(val => { return val });
+      isActive = true;
       authenticate();
       setProblem(await fetchProblem());
       runTest();
@@ -101,6 +97,7 @@ function activate(context) {
     // When the "Stop Testing" command is run this arrow function gets run
     "keylogger-mvp.stopTesting",
     () => {
+      isActive = false;
       writeState();
       finishTesting();
       survey();
@@ -164,8 +161,8 @@ function runTest() {
   const fs = require("fs");
   let json = JSON.stringify({ problem: __problem });
   fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
-    if (err){
-      console.log(err)
+    if (err) {
+      console.log(err);
     }
     const uri = vscode.window.activeTextEditor.document.uri
       .toString()
@@ -295,28 +292,31 @@ function init() {
 
 function recordKeyPresses() {
   // On document change handle event
-  vscode.workspace.onDidChangeTextDocument((event) => {
-    // For each content change store the location in file, changed text and time of event
-    event.contentChanges.forEach((contentChange) => {
-      const e = {
-        startLine: contentChange.range.start.line,
-        startChar: contentChange.range.start.character,
-        endLine: contentChange.range.start.line,
-        endChar: contentChange.range.end.character,
-        textChange: contentChange.text,
-        testsPassed: [],
-        time: Date.now(),
-      };
-      events.push(e);
-      vscode.workspace.saveAll(true);
-      runTest();
-      updateStatus();
+  if (isActive) {
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      // For each content change store the location in file, changed text and time of event
+      event.contentChanges.forEach((contentChange) => {
+        const e = {
+          startLine: contentChange.range.start.line,
+          startChar: contentChange.range.start.character,
+          endLine: contentChange.range.start.line,
+          endChar: contentChange.range.end.character,
+          textChange: contentChange.text,
+          testsPassed: [],
+          time: Date.now(),
+        };
+        events.push(e);
+        vscode.workspace.saveAll(true);
+        runTest();
+        updateStatus();
+      });
     });
-  });
+  }
 }
 
 // records the position of the cursor inside the text box
 function recordCursorMovements() {
+  if(isActive) {
   vscode.window.onDidChangeTextEditorSelection((event) => {
     event.selections.forEach((selection) => {
       const e = {
@@ -330,6 +330,7 @@ function recordCursorMovements() {
       events.push(e);
     });
   });
+}
 }
 
 /**
@@ -370,7 +371,7 @@ async function fetchProblem(userID, problemName) {
 }
 
 function finishTesting() {
-  return true;
+  events = [];
 }
 
 function setProblem(problem) {

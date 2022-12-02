@@ -1,6 +1,4 @@
 def binomial2(n, k):
-    
-
 
 
           

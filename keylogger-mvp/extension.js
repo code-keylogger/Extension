@@ -371,6 +371,7 @@ function updateStatus() {
   // console.log("DEBUG window refresh prompted");
   // console.log("DEBUGC current = ", current)
 }
+
 async function fetchProblem(userID, problemName) {
   let body = {};
   let param = "";

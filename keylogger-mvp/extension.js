@@ -200,14 +200,13 @@ function runTest() {
           }
         );
       } else if (language.toLowerCase() === "coq") {
-        exec(
-          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; coqc run.v`,
-          (err, stdout, stderr) => {
-            if (err || stderr) {
-              current = 0;
-            } else current = 1;
-          }
-        );
+        exec(`cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`, (err, stdout, stderr) => {})
+        exec(`coqc ${pathOfPy}run.v`,
+        (err, stdout, stderr) => {
+          if (err || stderr) {
+            current = 0;
+          } else current = 1;
+        })
       }
     });
   }
@@ -365,8 +364,8 @@ function recordCursorMovements() {
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
 }
-
-async function fetchProblem(userID, problemName) {
+//TODO remove the default of Sample coq proof
+async function fetchProblem(userID, problemName="Sample Coq proof") {
   let body = {};
   let param = "";
 

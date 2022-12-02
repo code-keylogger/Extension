@@ -1,2 +1,36 @@
-DIGEST 1c88f736c23cf0163a2b9cbd3df4f5bb
+DIGEST 1d0aaa911ff39b118c9e6d44c577175d
 Frun
+ind 10:12 <> day
+constr 26:31 <> monday
+constr 35:41 <> tuesday
+constr 45:53 <> wednesday
+constr 57:64 <> thursday
+constr 68:73 <> friday
+constr 77:84 <> saturday
+constr 88:93 <> sunday
+def 108:119 <> next_weekday
+R125:127 run <> day ind
+binder 122:122 <> d:3
+R132:134 run <> day ind
+R145:145 run <> d:3 var
+R154:159 run <> monday constr
+R164:170 run <> tuesday constr
+R174:180 run <> tuesday constr
+R185:193 run <> wednesday constr
+R197:205 run <> wednesday constr
+R210:217 run <> thursday constr
+R221:228 run <> thursday constr
+R233:238 run <> friday constr
+R242:247 run <> friday constr
+R252:257 run <> monday constr
+R261:268 run <> saturday constr
+R273:278 run <> monday constr
+R282:287 run <> sunday constr
+R292:297 run <> monday constr
+def 313:329 <> test_next_weekday
+R332:332 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R369:372 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R333:344 run <> next_weekday def
+R347:358 run <> next_weekday def
+R360:367 run <> saturday constr
+R373:379 run <> tuesday constr

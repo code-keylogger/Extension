@@ -194,7 +194,6 @@ function runTest() {
             console.log("DEBUG: failingTestID = ", failingTestID)
             current = total - failingTestID.length;
             if(current == total) {
-              isActive = false;
               writeState();
               finishTesting();
               survey(); 

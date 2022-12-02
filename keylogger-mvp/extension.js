@@ -26,7 +26,7 @@ let current = 0;
 let total = 0;
 let rightWindow;
 // TODO: for testing purposes
-const log = false;
+const log = true;
 const start = Date.now();
 let events = [];
 

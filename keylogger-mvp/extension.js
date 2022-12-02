@@ -16,6 +16,7 @@ let __problemID = undefined;
 let __problem = undefined;
 let language;
 let isActive = false;
+let failingTestID;
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
 let current = 0;
@@ -175,7 +176,11 @@ function runTest() {
           if (err || stderr) {
             console.log(err);
             current = 0;
-          } else current = total - stdout.split("\n").length + 1;
+          } else {
+            failingTestID = stdout.split("\n")
+            failingTestID.pop()
+            current = total - failingTestID.length;
+          }
         }
       );
     } else if (language.toLowerCase() === "coq") {
@@ -184,7 +189,7 @@ function runTest() {
         (err, stdout, stderr) => {
           if (err || stderr) {
             current = 0;
-          } else current = 1;
+          } else current = current + 1;
         }
       );
     }
@@ -343,6 +348,8 @@ function recordCursorMovements() {
  */
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
+  // console.log("DEBUG window refresh prompted");
+  // console.log("DEBUGC current = ", current)
 }
 
 async function fetchProblem(userID, problemName) {
@@ -405,9 +412,20 @@ function getWebViewContent(passing, tests) {
   </head>
   <body>
       <h1> Passing ${passing}/${tests} tests! </h1>
+      ${getFailingTestDetails(failingTestID)}
   </body>
   </html>`;
 }
+
+function getFailingTestDetails(failingTestID) {
+  let result = "<h2>Failed Tests:</h2><ul>";
+  for (let i = 0; i < failingTestID.length; i++) {
+    result += `<li>Input: ${__problem.testCases[i]} <br>Expected Output: ${__problem.answers[i]}`
+  }
+  result += "</ul>"
+  return result;
+}
+
 
 function writeState() {
   console.log(events);

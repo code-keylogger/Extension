@@ -24,7 +24,6 @@ var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
-
 // TODO: for testing purposes
 const log = true;
 const start = Date.now();
@@ -88,11 +87,8 @@ function activate(context) {
       //     prompt: "Not providing a name will result in a random problem",
       //   }).then(val => { return val });
       
-      authenticate();
-      setProblem(await fetchProblem());
-      runTest();
-    }
-  );
+       authenticate()
+      });
 
   let next = vscode.commands.registerCommand(
     "keylogger-mvp.nextTest",
@@ -158,25 +154,14 @@ async function authenticate(triedBefore = false) {
         isAuth = await isAuthenticated(a);
       } catch (e) {
         console.log(e);
-      }
-      
-      startTime = new Date();
-      endTime = new Date();
-  
-      endTime.setSeconds(endTime.getSeconds() +20);
-      
-      var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
-      var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
-
+      }    
       if (isAuth && isAuth.userid) {
         (__userID = isAuth.userid),
+          setProblem(await fetchProblem()),
           (rightWindow = init()),
-          setTimeout(end, 20000);
-          
-          vscode.window.showInformationMessage("You started at " + t);
-          vscode.window.showInformationMessage("You have until  " + te);
           recordKeyPresses(),
           recordCursorMovements();
+          runTest()
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -399,7 +384,17 @@ function finishTesting() {
   return true;
 }
 
-function setProblem(problem) {
+async function setProblem(problem) {
+  
+  startTime = new Date();
+  endTime = new Date();
+  endTime.setMinutes(endTime.getMinutes()+20)
+  var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
+  var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
+  setTimeout(end, 1200000);
+  vscode.window.showInformationMessage("You started at " + t);
+  vscode.window.showInformationMessage("You have until  " + te + " to complete all tests");
+
   current = 0;
   __problem = problem;
   __problemID = problem._id;

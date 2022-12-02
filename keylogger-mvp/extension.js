@@ -10,6 +10,8 @@ const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
 const { fstat } = require("fs");
+const { time } = require("console");
+const { privateEncrypt } = require("crypto");
 const _serverURL = "http://virulent.cs.umd.edu:3000";
 let __userID = undefined;
 let __problemID = undefined;
@@ -18,10 +20,11 @@ let language;
 let isActive = false;
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
+var startTime;
+var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
-
 // TODO: for testing purposes
 const log = false;
 const start = Date.now();
@@ -78,6 +81,7 @@ function activate(context) {
     "keylogger-mvp.startTesting",
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
+      // Calls the function to authenticate the email
       isActive = true;
       authenticate();
       setProblem(await fetchProblem());
@@ -105,10 +109,19 @@ function activate(context) {
     }
   );
 
+  
+
   // Listen to the provided commands
   context.subscriptions.push(next);
   context.subscriptions.push(disposable);
   context.subscriptions.push(closing);
+}
+
+function end() {
+  vscode.window.showInformationMessage("You have run out of time");
+  writeState();
+  finishTesting();
+  survey();
 }
 
 /**
@@ -142,13 +155,14 @@ async function authenticate(triedBefore = false) {
         isAuth = await isAuthenticated(a);
       } catch (e) {
         console.log(e);
-      }
-
+      }    
       if (isAuth && isAuth.userid) {
         (__userID = isAuth.userid),
+          setProblem(await fetchProblem()),
           (rightWindow = init()),
           recordKeyPresses(),
           recordCursorMovements();
+          runTest()
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -383,7 +397,17 @@ function finishTesting() {
   events = [];
 }
 
-function setProblem(problem) {
+async function setProblem(problem) {
+  
+  startTime = new Date();
+  endTime = new Date();
+  endTime.setMinutes(endTime.getMinutes()+20)
+  var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
+  var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
+  setTimeout(end, 1200000);
+  vscode.window.showInformationMessage("You started at " + t);
+  vscode.window.showInformationMessage("You have until  " + te + " to complete all tests");
+
   current = 0;
   __problem = problem;
   __problemID = problem._id;

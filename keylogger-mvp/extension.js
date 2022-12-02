@@ -16,7 +16,7 @@ let __problemID = undefined;
 let __problem = undefined;
 let language;
 let isActive = false;
-let failingTestID;
+let failingTestID = [];
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
 let current = 0;
@@ -179,6 +179,7 @@ function runTest() {
           } else {
             failingTestID = stdout.split("\n")
             failingTestID.pop()
+            console.log("DEBUG: failingTestID = ", failingTestID)
             current = total - failingTestID.length;
           }
         }
@@ -420,7 +421,7 @@ function getWebViewContent(passing, tests) {
 function getFailingTestDetails(failingTestID) {
   let result = "<h2>Failed Tests:</h2><ul>";
   for (let i = 0; i < failingTestID.length; i++) {
-    result += `<li>Input: ${__problem.testCases[i]} <br>Expected Output: ${__problem.answers[i]}`
+    result += `<li>Input: ${__problem.testCases[failingTestID[i]]} <br>Expected Output: ${__problem.answers[failingTestID[i]]}`
   }
   result += "</ul>"
   return result;

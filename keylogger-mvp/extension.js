@@ -17,6 +17,7 @@ let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
 let language;
+let isActive = false;
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
 var startTime;
@@ -25,7 +26,7 @@ let current = 0;
 let total = 0;
 let rightWindow;
 // TODO: for testing purposes
-const log = true;
+const log = false;
 const start = Date.now();
 let events = [];
 
@@ -81,18 +82,17 @@ function activate(context) {
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
       // Calls the function to authenticate the email
-      //   let problem;
-      //  await vscode.window.showInputBox({
-      //     title: "Choose Problem Name",
-      //     prompt: "Not providing a name will result in a random problem",
-      //   }).then(val => { return val });
-      
-       authenticate()
-      });
+      isActive = true;
+      authenticate();
+      setProblem(await fetchProblem());
+      runTest();
+    }
+  );
 
   let next = vscode.commands.registerCommand(
     "keylogger-mvp.nextTest",
     async () => {
+      events = [];
       nextTest();
       runTest();
     }
@@ -102,6 +102,7 @@ function activate(context) {
     // When the "Stop Testing" command is run this arrow function gets run
     "keylogger-mvp.stopTesting",
     () => {
+      isActive = false;
       writeState();
       finishTesting();
       survey();
@@ -142,7 +143,7 @@ async function authenticate(triedBefore = false) {
     title = "Incorrect information... Try again";
   }
 
-  await vscode.window
+  vscode.window
     .showInputBox({
       title,
       prompt,
@@ -170,38 +171,46 @@ async function authenticate(triedBefore = false) {
 }
 
 function runTest() {
-  // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
-  const pathOfPy = `${__dirname}/exec/`;
-  const fs = require("fs");
-  let json = JSON.stringify({ problem: __problem });
-  fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
-    if (err){
-      console.log(err)
-    }
-    const uri = vscode.window.activeTextEditor.document.uri
-      .toString()
-      .substring(7);
-    if (language.toLowerCase() === "python") {
-      exec(
-        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
-        (err, stdout, stderr) => {
-          if (err || stderr) {
-            console.log(err);
-            current = 0;
-          } else current = total - stdout.split("\n").length + 1;
-        }
-      );
-    } else if (language.toLowerCase() === "coq") {
-      exec(
-        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; coqc run.v`,
-        (err, stdout, stderr) => {
-          if (err || stderr) {
-            current = 0;
-          } else current = 1;
-        }
-      );
-    }
-  });
+  if (isActive) {
+    const pathOfPy = `${__dirname}/exec/`;
+    const fs = require("fs");
+    let json = JSON.stringify({ problem: __problem });
+    fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
+      if (err) {
+        console.log(err);
+      }
+      const uri = vscode.window.activeTextEditor.document.uri
+        .toString()
+        .substring(7);
+      if (language.toLowerCase() === "python") {
+        exec(
+          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+          (err, stdout, stderr) => {
+            if (err || stderr) {
+              console.log(err);
+              current = 0;
+            } else {current = total - stdout.split("\n").length + 1;
+            if(current == total) {
+              isActive = false;
+              writeState();
+              finishTesting();
+              survey(); 
+            }
+          }
+          }
+        );
+      } else if (language.toLowerCase() === "coq") {
+        exec(
+          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; coqc run.v`,
+          (err, stdout, stderr) => {
+            if (err || stderr) {
+              current = 0;
+            } else current = 1;
+          }
+        );
+      }
+    });
+  }
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -306,41 +315,45 @@ function init() {
 
 function recordKeyPresses() {
   // On document change handle event
-  vscode.workspace.onDidChangeTextDocument((event) => {
-    // For each content change store the location in file, changed text and time of event
-    event.contentChanges.forEach((contentChange) => {
-      const e = {
-        startLine: contentChange.range.start.line,
-        startChar: contentChange.range.start.character,
-        endLine: contentChange.range.start.line,
-        endChar: contentChange.range.end.character,
-        textChange: contentChange.text,
-        testsPassed: [],
-        time: Date.now(),
-      };
-      events.push(e);
-      vscode.workspace.saveAll(true);
-      runTest();
-      updateStatus();
+  if (isActive) {
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      // For each content change store the location in file, changed text and time of event
+      event.contentChanges.forEach((contentChange) => {
+        const e = {
+          startLine: contentChange.range.start.line,
+          startChar: contentChange.range.start.character,
+          endLine: contentChange.range.start.line,
+          endChar: contentChange.range.end.character,
+          textChange: contentChange.text,
+          testsPassed: [],
+          time: Date.now(),
+        };
+        events.push(e);
+        vscode.workspace.saveAll(true);
+        runTest();
+        updateStatus();
+      });
     });
-  });
+  }
 }
 
 // records the position of the cursor inside the text box
 function recordCursorMovements() {
-  vscode.window.onDidChangeTextEditorSelection((event) => {
-    event.selections.forEach((selection) => {
-      const e = {
-        active: selection.active,
-        anchor: selection.anchor,
-        end: selection.end,
-        isReversed: selection.isReversed,
-        start: selection.start,
-      };
-      // Push events to queue
-      events.push(e);
+  if (isActive) {
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      event.selections.forEach((selection) => {
+        const e = {
+          active: selection.active,
+          anchor: selection.anchor,
+          end: selection.end,
+          isReversed: selection.isReversed,
+          start: selection.start,
+        };
+        // Push events to queue
+        events.push(e);
+      });
     });
-  });
+  }
 }
 
 /**
@@ -381,7 +394,7 @@ async function fetchProblem(userID, problemName) {
 }
 
 function finishTesting() {
-  return true;
+  events = [];
 }
 
 async function setProblem(problem) {
@@ -428,7 +441,7 @@ function getWebViewContent(passing, tests) {
 }
 
 function writeState() {
-  console.log(events);
+  // console.log(events);
   if (!log) return;
   request.post(
     `${_serverURL}/save`,

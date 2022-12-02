@@ -85,8 +85,6 @@ function activate(context) {
       // Calls the function to authenticate the email
       isActive = true;
       authenticate();
-      setProblem(await fetchProblem());
-      runTest();
     }
   );
 

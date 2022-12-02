@@ -364,8 +364,8 @@ function recordCursorMovements() {
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
 }
-//TODO remove the default of Sample coq proof
-async function fetchProblem(userID, problemName="Sample Coq proof") {
+
+async function fetchProblem(userID, problemName) {
   let body = {};
   let param = "";
 

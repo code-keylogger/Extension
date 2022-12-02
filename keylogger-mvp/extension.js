@@ -7,7 +7,7 @@ const { initParams } = require("request");
 const path = require("path");
 const os = require("os");
 const { exec } = require("child_process");
-const { throws, rejects } = require("assert");
+const { throws, rejects, fail } = require("assert");
 const { prependOnceListener } = require("process");
 const { fstat } = require("fs");
 const { time } = require("console");
@@ -188,10 +188,15 @@ function runTest() {
             if (err || stderr) {
               console.log(err);
               current = 0;
+              failingTestID = []
+              for (let i = 0; i < __problem.testCases.length; i++) {
+                failingTestID.push(i);
+              }
+              console.log("DEBUG 1: failingTestID = ", failingTestID)
             } else {
             failingTestID = stdout.split("\n")
             failingTestID.pop()
-            console.log("DEBUG: failingTestID = ", failingTestID)
+            console.log("DEBUG 2: failingTestID = ", failingTestID)
             current = total - failingTestID.length;
             if(current == total) {
               writeState();
@@ -212,6 +217,7 @@ function runTest() {
       }
     });
   }
+  updateStatus()
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -308,7 +314,7 @@ function init() {
     vscode.ViewColumn.Three
   );
 
-  panel.webview.html = getWebViewContent(current, total);
+  panel.webview.html = "<h2>Start typing your solution and tests will be executed automatically</h2>";
   panel2.webview.html = __problem["html"];
 
   return panel;
@@ -332,7 +338,6 @@ function recordKeyPresses() {
         events.push(e);
         vscode.workspace.saveAll(true);
         runTest();
-        updateStatus();
       });
     });
   }
@@ -365,8 +370,6 @@ function recordCursorMovements() {
  */
 function updateStatus() {
   rightWindow.webview.html = getWebViewContent(current, total);
-  // console.log("DEBUG window refresh prompted");
-  // console.log("DEBUGC current = ", current)
 }
 
 async function fetchProblem(userID, problemName) {
@@ -445,6 +448,10 @@ function getWebViewContent(passing, tests) {
 }
 
 function getFailingTestDetails(failingTestID) {
+  if (failingTestID.length === 0) {
+    return "";
+  }
+  console.log("DEBUG 3: failingTestID = ", failingTestID)
   let result = "<h2>Failed Tests:</h2><ul>";
   for (let i = 0; i < failingTestID.length; i++) {
     result += `<li>Input: ${__problem.testCases[failingTestID[i]]} <br>Expected Output: ${__problem.answers[failingTestID[i]]}`

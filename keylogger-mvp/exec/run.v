@@ -1,8 +1,31 @@
-def binomial2(n, k):
-   if n == 5 and k == 3:
-      return 10    
+Inductive day : Type :=
+| monday
+| tuesday
+| wednesday
+| thursday
+| friday
+| saturday
+| sunday.
 
-        
+Definition next_weekday (d: day) : day :=
+match d with
+| monday => tuesday
+| tuesday => wednesday
+| wednesday => thursday
+| thursday => friday
+| friday => monday
+| saturday => monday
+| sunday => monday
+end.
+
+Example test_next_weekday:
+(next_weekday (next_weekday saturday)) = tuesday.
+Proof. simpl. reflexivity. Qed
+
+
+
+
+
 
 
 

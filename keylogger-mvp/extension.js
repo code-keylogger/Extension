@@ -10,6 +10,8 @@ const { exec } = require("child_process");
 const { throws, rejects } = require("assert");
 const { prependOnceListener } = require("process");
 const { fstat } = require("fs");
+const { time } = require("console");
+const { privateEncrypt } = require("crypto");
 const _serverURL = "http://virulent.cs.umd.edu:3000";
 let __userID = undefined;
 let __problemID = undefined;
@@ -19,10 +21,11 @@ let isActive = false;
 let failingTestID = [];
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
+var startTime;
+var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
-
 // TODO: for testing purposes
 const log = true;
 const start = Date.now();
@@ -79,6 +82,7 @@ function activate(context) {
     "keylogger-mvp.startTesting",
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
+      // Calls the function to authenticate the email
       isActive = true;
       authenticate();
       setProblem(await fetchProblem());
@@ -89,6 +93,7 @@ function activate(context) {
   let next = vscode.commands.registerCommand(
     "keylogger-mvp.nextTest",
     async () => {
+      events = [];
       nextTest();
       runTest();
     }
@@ -105,10 +110,19 @@ function activate(context) {
     }
   );
 
+  
+
   // Listen to the provided commands
   context.subscriptions.push(next);
   context.subscriptions.push(disposable);
   context.subscriptions.push(closing);
+}
+
+function end() {
+  vscode.window.showInformationMessage("You have run out of time");
+  writeState();
+  finishTesting();
+  survey();
 }
 
 /**
@@ -130,7 +144,7 @@ async function authenticate(triedBefore = false) {
     title = "Incorrect information... Try again";
   }
 
-  await vscode.window
+  vscode.window
     .showInputBox({
       title,
       prompt,
@@ -142,13 +156,14 @@ async function authenticate(triedBefore = false) {
         isAuth = await isAuthenticated(a);
       } catch (e) {
         console.log(e);
-      }
-
+      }    
       if (isAuth && isAuth.userid) {
         (__userID = isAuth.userid),
+          setProblem(await fetchProblem()),
           (rightWindow = init()),
           recordKeyPresses(),
           recordCursorMovements();
+          runTest()
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -157,45 +172,49 @@ async function authenticate(triedBefore = false) {
 }
 
 function runTest() {
-  // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
-  if(isActive) {
-  const pathOfPy = `${__dirname}/exec/`;
-  const fs = require("fs");
-  let json = JSON.stringify({ problem: __problem });
-  fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
-    if (err) {
-      console.log(err);
-    }
-    const uri = vscode.window.activeTextEditor.document.uri
-      .toString()
-      .substring(7);
-    if (language.toLowerCase() === "python") {
-      exec(
-        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
-        (err, stdout, stderr) => {
-          if (err || stderr) {
-            console.log(err);
-            current = 0;
-          } else {
+  if (isActive) {
+    const pathOfPy = `${__dirname}/exec/`;
+    const fs = require("fs");
+    let json = JSON.stringify({ problem: __problem });
+    fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
+      if (err) {
+        console.log(err);
+      }
+      const uri = vscode.window.activeTextEditor.document.uri
+        .toString()
+        .substring(7);
+      if (language.toLowerCase() === "python") {
+        exec(
+          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+          (err, stdout, stderr) => {
+            if (err || stderr) {
+              console.log(err);
+              current = 0;
+            } else {
             failingTestID = stdout.split("\n")
             failingTestID.pop()
             console.log("DEBUG: failingTestID = ", failingTestID)
             current = total - failingTestID.length;
+            if(current == total) {
+              isActive = false;
+              writeState();
+              finishTesting();
+              survey(); 
+            }
           }
-        }
-      );
-    } else if (language.toLowerCase() === "coq") {
-      exec(
-        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; coqc run.v`,
+          }
+        );
+      } else if (language.toLowerCase() === "coq") {
+        exec(`cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`, (err, stdout, stderr) => {})
+        exec(`coqc ${pathOfPy}run.v`,
         (err, stdout, stderr) => {
           if (err || stderr) {
             current = 0;
-          } else current = current + 1;
-        }
-      );
-    }
-  });
-}
+          } else current = 1;
+        })
+      }
+    });
+  }
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -324,21 +343,21 @@ function recordKeyPresses() {
 
 // records the position of the cursor inside the text box
 function recordCursorMovements() {
-  if(isActive) {
-  vscode.window.onDidChangeTextEditorSelection((event) => {
-    event.selections.forEach((selection) => {
-      const e = {
-        active: selection.active,
-        anchor: selection.anchor,
-        end: selection.end,
-        isReversed: selection.isReversed,
-        start: selection.start,
-      };
-      // Push events to queue
-      events.push(e);
+  if (isActive) {
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      event.selections.forEach((selection) => {
+        const e = {
+          active: selection.active,
+          anchor: selection.anchor,
+          end: selection.end,
+          isReversed: selection.isReversed,
+          start: selection.start,
+        };
+        // Push events to queue
+        events.push(e);
+      });
     });
-  });
-}
+  }
 }
 
 /**
@@ -352,8 +371,8 @@ function updateStatus() {
   // console.log("DEBUG window refresh prompted");
   // console.log("DEBUGC current = ", current)
 }
-
-async function fetchProblem(userID, problemName) {
+//TODO remove the default of Sample coq proof
+async function fetchProblem(userID, problemName="Sample Coq proof") {
   let body = {};
   let param = "";
 
@@ -384,7 +403,17 @@ function finishTesting() {
   events = [];
 }
 
-function setProblem(problem) {
+async function setProblem(problem) {
+  
+  startTime = new Date();
+  endTime = new Date();
+  endTime.setMinutes(endTime.getMinutes()+20)
+  var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
+  var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
+  setTimeout(end, 1200000);
+  vscode.window.showInformationMessage("You started at " + t);
+  vscode.window.showInformationMessage("You have until  " + te + " to complete all tests");
+
   current = 0;
   __problem = problem;
   __problemID = problem._id;
@@ -429,7 +458,7 @@ function getFailingTestDetails(failingTestID) {
 
 
 function writeState() {
-  console.log(events);
+  // console.log(events);
   if (!log) return;
   request.post(
     `${_serverURL}/save`,

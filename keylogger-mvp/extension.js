@@ -21,6 +21,7 @@ const pyvers = os.platform() === "win32" ? "python" : "python3";
 
 var startTime;
 var endTime;
+var timer = null;
 let current = 0;
 let total = 0;
 let rightWindow;
@@ -102,6 +103,7 @@ function activate(context) {
     // When the "Stop Testing" command is run this arrow function gets run
     "keylogger-mvp.stopTesting",
     () => {
+      clearTimeout(timer);
       writeState();
       finishTesting();
       survey();
@@ -391,7 +393,7 @@ async function setProblem(problem) {
   endTime.setMinutes(endTime.getMinutes()+20)
   var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
   var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
-  setTimeout(end, 1200000);
+  timer = setTimeout(end, 1200000);
   vscode.window.showInformationMessage("You started at " + t);
   vscode.window.showInformationMessage("You have until  " + te + " to complete all tests");
 
@@ -409,6 +411,7 @@ async function nextTest() {
     title: "Choose Problem Name",
     prompt: "Not providing a name will result in a random problem",
   });
+  clearTimeout(timer);
   setProblem(await fetchProblem(problemName));
   rightWindow = init();
 }

@@ -1,0 +1,5 @@
+{
+    "surveyLink": "https://EnterYourSurveyLinkHere.com",
+    "timerLength": 20000,
+    "serverURL": "http://virulent.cs.umd.edu:3000"
+}

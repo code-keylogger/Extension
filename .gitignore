@@ -1,3 +1,9 @@
 node_modules
 .DS_Store
 out
+keylogger-mvp/exec/run.glob
+keylogger-mvp/exec/run.vo
+keylogger-mvp/exec/run.vos
+keylogger-mvp/exec/run.vok
+keylogger-mvp/exec/exec.py
+keylogger-mvp/exec/prob.json

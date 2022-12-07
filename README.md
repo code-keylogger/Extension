@@ -18,9 +18,10 @@ the user will be prompted to copy the link to a survey and fill out it out in br
     d. Select the file
 2. Make sure you have all the languages you will be using to solve problems installed on your local machine and referenced in your `$PATH`.
 3. Start testing by pressing `f1` followed by `Start Testing`. You will be prompted to enter your email to procede. (This must be the email provided to your admin)
-4. To move on to a following test press `f1` followed by `Next Test`.
-5. When a problem is finished you can hit `f1 -> Stop Testing` to stop your session, or the session will automatically stop when you have passed all the tests.
-6. You will be prompted with a survey upon the completion of a problem to leave your feedback.
+4. Open a new file to start writing `File > New File` the file can be any type you want, but we suggest you use the language you will be writing in so that you get syntax highlighting.
+5. To move on to a following test press `f1` followed by `Next Test`.
+6. When a problem is finished you can hit `f1 -> Stop Testing` to stop your session, or the session will automatically stop when you have passed all the tests.
+7. You will be prompted with a survey upon the completion of a problem to leave your feedback.
 
 ## Developing and Altering the Extension
 

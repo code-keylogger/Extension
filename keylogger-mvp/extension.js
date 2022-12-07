@@ -189,18 +189,17 @@ function runTest() {
               for (let i = 0; i < __problem.testCases.length; i++) {
                 failingTestID.push(i);
               }
-              console.log("DEBUG 1: failingTestID = ", failingTestID);
             } else {
-              failingTestID = stdout.split("\n");
-              failingTestID.pop();
-              console.log("DEBUG 2: failingTestID = ", failingTestID);
-              current = total - failingTestID.length;
-              if (current == total) {
-                writeState();
-                finishTesting();
-                survey();
+                failingTestID = stdout.split("\n");
+                failingTestID.pop();
+                current = total - failingTestID.length;
+                if (current == total) {
+                  writeState();
+                  finishTesting();
+                  survey();
+                }
               }
-            }
+            updateStatus();
           }
         );
       } else if (language.toLowerCase() === "coq") {
@@ -216,7 +215,6 @@ function runTest() {
       }
     });
   }
-  updateStatus();
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -464,7 +462,6 @@ function getFailingTestDetails(failingTestID) {
   if (failingTestID.length === 0) {
     return "";
   }
-  console.log("DEBUG 3: failingTestID = ", failingTestID);
   let result = "<h2>Failed Tests:</h2><ul>";
   for (let i = 0; i < failingTestID.length; i++) {
     result += `<li>Input: ${
@@ -476,7 +473,6 @@ function getFailingTestDetails(failingTestID) {
 }
 
 function writeState() {
-  // console.log(events);
   if (!log) return;
   request.post(
     `${_serverURL}/save`,

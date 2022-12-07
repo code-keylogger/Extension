@@ -170,7 +170,8 @@ async function authenticate(triedBefore = false) {
 function runTest() {
   if (isActive) {
     let pathOfPy = (os.platform() === 'win32')? `${__dirname}\\exec\\`:`${__dirname}/exec/`;
-    pathOfPy = pathOfPy.replace(/\//g, "\\")
+    if (os.platform() == 'win32')
+      pathOfPy.replace(/\//g, "\\")
     const fs = require("fs");
     let json = JSON.stringify({ problem: __problem });
     fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {

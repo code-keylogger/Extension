@@ -10,38 +10,37 @@ be able to see their problem question and how many tests they are passing. Once 
 finish they will open the Command Palette and type in 'Stop Testing'. Once this is complete
 the user will be prompted to copy the link to a survey and fill out it out in browser.
 
-## Using the extension
-1. Install the .vsix extension into your instance of VSCode
-2. Make sure you have all the language's you will be using to solve problems installed on your local machine
-as that will be required to run the tests
-3. Start testing by pressing `f1` followed by `Start Testing`
-4. To finish testing press `f1` followed by `Stop Testing`
+## Using the Extension
+1. Install the `.vsix` extension file into your instance of VSCode.
+    a. Navigate to the extensions tab on the left of the window.
+    b. Click the `...` in the upper right
+    c. Select "install from vsix"
+    d. Select the file
+2. Make sure you have all the languages you will be using to solve problems installed on your local machine and referenced in your `$PATH`.
+3. Start testing by pressing `f1` followed by `Start Testing`. You will be prompted to enter your email to procede. (This must be the email provided to your admin)
+4. To move on to a following test press `f1` followed by `Next Test`.
+5. When a problem is finished you can hit `f1 -> Stop Testing` to stop your session, or the session will automatically stop when you have passed all the tests.
+6. You will be prompted with a survey upon the completion of a problem to leave your feedback.
 
-## Quick Start
-1. If you have not already installed the packages cd into keylogger-mvp and run 'npm i'
-2. Open vscode and navigate your path to where extension.js is located
-3. Once there run your f5 command or manually run extension.js either with or without debugging
-4. Once the new window opens, Open the command palette (ctrl + shift + p in windows)
-5. Type in Start Testing and press enter
-6. Enter your email address in the window prompt, once typed press enter
-7. Choose the language you are using by either selecting or typing one of the dropdown languages
-8. Choose the problem set you are using by either selecting or typing one of the dropdown problem sets
-9. Write your code once the problem appears
-10. When finished open the command palette and type Stop Testing and press enter
-11. A survey will prompt please copy the link into your browser and fill out the survey
-12. If you wish to use the extension again please exit out and begin from step 2 (Assuming you still have the packages installed)
+## Developing and Altering the Extension
 
+### Simple Config
 
+1. To change the survey link, time limit, or any other configuration parameters make changes in `keylogger-mvp > pluginConfig.json`.
+2. When changes have been made you simply repackage the plugin by running `vsce package` from the `keylogger-mvp/` directory.
 
-## Running extension.js Documentation Locally
+### Debugging and Further Developement
 
-If you wish to view the documentation for this program in webpage format please follow the steps bellow:
+1. To add additional features or fix any bugs you can make changes (likely to `extension.js`) from there you can debug the plugin.
 
-1. Where extension.js is located along your path run  './node_modules/.bin/jsdoc .\extension.js'
-    or include 'Path To README.md \README.md' after '.\extension.js' in order to view this README.md on the Home page. (Recommended)
-    ie: './node_modules/.bin/jsdoc .\extension.js path\to\readme\README.md\README.md'
-2. This will create a folder called out.
-3. Ensure your machine has the ability to open html files in browser.
-4. Right click on extension.js.html and select the option "Open In Default Browser".
-   or however you wish to open the html file.
+    1. If you have not already installed the packages cd into keylogger-mvp and run `npm i`
+    2. Open vscode and navigate your path to where extension.js is located
+    3. Once there run your `f5` command or manually run extension.js either with or without debugging
+    4. Once the new window opens, Open the command palette (ctrl + shift + p in windows)
+    5. Type in `Start Testing` and press `enter`
 
+2. To add additional language support you must:
+
+    1. Add a new "runner file" in the `exec` directory. Follow the example of `compile.py`
+    2. Add a new case to the `replacer.py` file
+    3. Handle the new language in `runTest()` within `extension.js`

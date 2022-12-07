@@ -1,3 +1,9 @@
 node_modules
 .DS_Store
 out
+run.glob
+run.vo
+run.vos
+run.vok
+exec.py
+prob.json

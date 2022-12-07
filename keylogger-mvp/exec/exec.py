@@ -1,6 +1,25 @@
-def divisor_list(n):
-    return [1,2,3,6]
+def fizzbuzz(n):
+    if n % 3 == 0 and n % 5 == 0:
+        return "FizzBuzz"
+    elif n % 5 == 0:
+        return "Fizz"
+    elif n % 3 == 0:
+        return "Buzz"
+    else:
+        return ""
+
+
+    # divisors = []
+    # for i in range(1, n + 1):
+    #     if n % i == 0:
+    #         divisors.append(i)
+    # return divisors
+
+
+
     
+
+
     
 
 import sys
@@ -36,6 +55,6 @@ def type_conv(type_str, val):
         raise Exception(f"Type {type_str} not supported yet")
 
 for i in range(len(tests)):
-    if not type_conv(types[-1], answers[i]) == divisor_list(type_conv(types[0], tests[i].split(',')[0])):
+    if not type_conv(types[-1], answers[i]) == fizzbuzz(type_conv(types[0], tests[i].split(',')[0])):
         print(i)
 

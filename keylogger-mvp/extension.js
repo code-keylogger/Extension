@@ -1,5 +1,4 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+const config = require("./pluginConfig.json");
 
 const vscode = require("vscode");
 const request = require("request");
@@ -26,7 +25,7 @@ var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
-// TODO: for testing purposes
+
 const log = true;
 const start = Date.now();
 let events = [];
@@ -129,7 +128,7 @@ function end() {
  */
 function survey() {
   vscode.window.showInformationMessage(
-    "Please follow this link to fill out a survey about your experience."
+    `Please fill out a survey here: ${config.surveyLink}`
   );
 }
 
@@ -410,7 +409,7 @@ async function setProblem(problem) {
   endTime.setMinutes(endTime.getMinutes()+20)
   var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
   var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
-  setTimeout(end, 1200000);
+  setTimeout(end, config.timerLength);
   vscode.window.showInformationMessage("You started at " + t);
   vscode.window.showInformationMessage("You have until  " + te + " to complete all tests");
 

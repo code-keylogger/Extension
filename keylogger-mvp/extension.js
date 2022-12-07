@@ -191,18 +191,21 @@ function runTest() {
               }
               console.log("DEBUG 1: failingTestID = ", failingTestID);
             } else {
-              failingTestID = stdout.split("\n");
-              failingTestID.pop();
-              console.log("DEBUG 2: failingTestID = ", failingTestID);
-              current = total - failingTestID.length;
-              if (current == total) {
-                writeState();
-                finishTesting();
-                survey();
+                failingTestID = stdout.split("\n");
+                failingTestID.pop();
+                console.log("DEBUG 2: failingTestID = ", failingTestID);
+                current = total - failingTestID.length;
+                if (current == total) {
+                  writeState();
+                  finishTesting();
+                  survey();
+              }
               }
             }
+            updateStatus();
           }
         );
+        console.log("DEBUG: A Python test was executed.")
       } else if (language.toLowerCase() === "coq") {
         exec(
           `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`,
@@ -216,7 +219,6 @@ function runTest() {
       }
     });
   }
-  updateStatus();
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -369,6 +371,7 @@ function recordCursorMovements() {
  * @inner
  */
 function updateStatus() {
+  console.log("DEBUG Updating status.")
   rightWindow.webview.html = getWebViewContent(current, total);
 }
 

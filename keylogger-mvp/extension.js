@@ -169,56 +169,55 @@ async function authenticate(triedBefore = false) {
 
 function runTest() {
   if (isActive) {
-    let pathOfPy = (os.platform() === 'win32')? `${__dirname}\\exec\\`:`${__dirname}/exec/`;
-    if (os.platform() == 'win32')
-      pathOfPy.replace(/\//g, "\\")
+    let pathOfPy =
+      os.platform() === "win32" ? `${__dirname}\\exec\\` : `${__dirname}/exec/`;
+    if (os.platform() == "win32") pathOfPy.replace(/\//g, "\\");
     const fs = require("fs");
     let json = JSON.stringify({ problem: __problem });
-    fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
-      if (err) {
-        console.log(err);
-      }
-      let uri = decodeURIComponent(vscode.window.activeTextEditor.document.uri.toString())
-        .toString()
-        .substring(7);
-        uri = (os.platform() === "win32")? uri.substring(1).replace(/\//g, "\\"):uri
-      if (language.toLowerCase() === "python") {
-        exec(
-          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
-          (os.platform() === "win32")? {'shell':'powershell.exe'}: {},
-          (err, stdout, stderr) => {
-            if (err || stderr) {
-              console.log(err);
-              current = 0;
-              failingTestID = [];
-              for (let i = 0; i < __problem.testCases.length; i++) {
-                failingTestID.push(i);
-              }
-            } else {
-                failingTestID = stdout.split("\n");
-                failingTestID.pop();
-                current = total - failingTestID.length;
-                if (current == total) {
-                  writeState();
-                  finishTesting();
-                  survey();
-                }
-              }
-            updateStatus();
-          }
-        );
-      } else if (language.toLowerCase() === "coq") {
-        exec(
-          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`,
-          (err, stdout, stderr) => {}
-        );
-        exec(`coqc ${pathOfPy}run.v`, (err, stdout, stderr) => {
+    fs.writeFileSync(`${pathOfPy}/prob.json`, json);
+    let uri = decodeURIComponent(
+      vscode.window.activeTextEditor.document.uri.toString()
+    )
+      .toString()
+      .substring(7);
+    uri =
+      os.platform() === "win32" ? uri.substring(1).replace(/\//g, "\\") : uri;
+    if (language.toLowerCase() === "python") {
+      exec(
+        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+        os.platform() === "win32" ? { shell: "powershell.exe" } : {},
+        (err, stdout, stderr) => {
           if (err || stderr) {
+            console.log(err);
             current = 0;
-          } else current = 1;
-        });
-      }
-    });
+            failingTestID = [];
+            for (let i = 0; i < __problem.testCases.length; i++) {
+              failingTestID.push(i);
+            }
+          } else {
+            failingTestID = stdout.split("\n");
+            failingTestID.pop();
+            current = total - failingTestID.length;
+            if (current == total) {
+              writeState();
+              finishTesting();
+              survey();
+            }
+          }
+        }
+      );
+    } else if (language.toLowerCase() === "coq") {
+      exec(
+        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`,
+        (err, stdout, stderr) => {}
+      );
+      exec(`coqc ${pathOfPy}run.v`, (err, stdout, stderr) => {
+        if (err || stderr) {
+          current = 0;
+        } else current = 1;
+      });
+    }
+    updateStatus();
   }
 }
 

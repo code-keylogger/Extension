@@ -176,10 +176,7 @@ function runTest() {
       pathOfPy.replace(/\//g, "\\")
     const fs = require("fs");
     let json = JSON.stringify({ problem: __problem });
-    fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
-      if (err) {
-        console.log(err);
-      }
+    fs.writeFileSync(`${pathOfPy}/prob.json`, json) 
       let uri = decodeURIComponent(vscode.window.activeTextEditor.document.uri.toString())
         .toString()
         .substring(7);
@@ -206,7 +203,6 @@ function runTest() {
                   survey();
                 }
               }
-            updateStatus();
           }
         );
       } else if (language.toLowerCase() === "coq") {
@@ -220,7 +216,7 @@ function runTest() {
           } else current = 1;
         });
       }
-    });
+      updateStatus();
   }
 }
 

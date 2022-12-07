@@ -189,11 +189,9 @@ function runTest() {
               for (let i = 0; i < __problem.testCases.length; i++) {
                 failingTestID.push(i);
               }
-              console.log("DEBUG 1: failingTestID = ", failingTestID);
             } else {
                 failingTestID = stdout.split("\n");
                 failingTestID.pop();
-                console.log("DEBUG 2: failingTestID = ", failingTestID);
                 current = total - failingTestID.length;
                 if (current == total) {
                   writeState();
@@ -204,7 +202,6 @@ function runTest() {
             updateStatus();
           }
         );
-        console.log("DEBUG: A Python test was executed.")
       } else if (language.toLowerCase() === "coq") {
         exec(
           `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`,
@@ -370,7 +367,6 @@ function recordCursorMovements() {
  * @inner
  */
 function updateStatus() {
-  console.log("DEBUG Updating status.")
   rightWindow.webview.html = getWebViewContent(current, total);
 }
 
@@ -466,7 +462,6 @@ function getFailingTestDetails(failingTestID) {
   if (failingTestID.length === 0) {
     return "";
   }
-  console.log("DEBUG 3: failingTestID = ", failingTestID);
   let result = "<h2>Failed Tests:</h2><ul>";
   for (let i = 0; i < failingTestID.length; i++) {
     result += `<li>Input: ${
@@ -478,7 +473,6 @@ function getFailingTestDetails(failingTestID) {
 }
 
 function writeState() {
-  // console.log(events);
   if (!log) return;
   request.post(
     `${_serverURL}/save`,

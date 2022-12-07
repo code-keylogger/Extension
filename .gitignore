@@ -1,9 +1,9 @@
 node_modules
 .DS_Store
 out
-run.glob
-run.vo
-run.vos
-run.vok
-exec.py
-prob.json
+/exec/run.glob
+/exec/run.vo
+/exec/run.vos
+/exec/run.vok
+/exec/exec.py
+/exec/prob.json

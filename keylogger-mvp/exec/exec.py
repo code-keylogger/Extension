@@ -1,26 +1,4 @@
-def fizzbuzz(n):
-    if n % 3 == 0 and n % 5 == 0:
-        return "FizzBuzz"
-    elif n % 5 == 0:
-        return "Fizz"
-    elif n % 3 == 0:
-        return "Buzz"
-    else:
-        return ""
 
-
-    # divisors = []
-    # for i in range(1, n + 1):
-    #     if n % i == 0:
-    #         divisors.append(i)
-    # return divisors
-
-
-
-    
-
-
-    
 
 import sys
 import json

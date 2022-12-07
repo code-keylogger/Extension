@@ -107,8 +107,6 @@ function activate(context) {
     }
   );
 
-  
-
   // Listen to the provided commands
   context.subscriptions.push(next);
   context.subscriptions.push(disposable);
@@ -153,14 +151,14 @@ async function authenticate(triedBefore = false) {
         isAuth = await isAuthenticated(a);
       } catch (e) {
         console.log(e);
-      }    
+      }
       if (isAuth && isAuth.userid) {
         (__userID = isAuth.userid),
           setProblem(await fetchProblem()),
           (rightWindow = init()),
           recordKeyPresses(),
           recordCursorMovements();
-          runTest()
+        runTest();
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -187,36 +185,38 @@ function runTest() {
             if (err || stderr) {
               console.log(err);
               current = 0;
-              failingTestID = []
+              failingTestID = [];
               for (let i = 0; i < __problem.testCases.length; i++) {
                 failingTestID.push(i);
               }
-              console.log("DEBUG 1: failingTestID = ", failingTestID)
+              console.log("DEBUG 1: failingTestID = ", failingTestID);
             } else {
-            failingTestID = stdout.split("\n")
-            failingTestID.pop()
-            console.log("DEBUG 2: failingTestID = ", failingTestID)
-            current = total - failingTestID.length;
-            if(current == total) {
-              writeState();
-              finishTesting();
-              survey(); 
+              failingTestID = stdout.split("\n");
+              failingTestID.pop();
+              console.log("DEBUG 2: failingTestID = ", failingTestID);
+              current = total - failingTestID.length;
+              if (current == total) {
+                writeState();
+                finishTesting();
+                survey();
+              }
             }
-          }
           }
         );
       } else if (language.toLowerCase() === "coq") {
-        exec(`cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`, (err, stdout, stderr) => {})
-        exec(`coqc ${pathOfPy}run.v`,
-        (err, stdout, stderr) => {
+        exec(
+          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`,
+          (err, stdout, stderr) => {}
+        );
+        exec(`coqc ${pathOfPy}run.v`, (err, stdout, stderr) => {
           if (err || stderr) {
             current = 0;
           } else current = 1;
-        })
+        });
       }
     });
   }
-  updateStatus()
+  updateStatus();
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -313,7 +313,8 @@ function init() {
     vscode.ViewColumn.Three
   );
 
-  panel.webview.html = "<h2>Start typing your solution and tests will be executed automatically</h2>";
+  panel.webview.html =
+    "<h2>Start typing your solution and tests will be executed automatically</h2>";
   panel2.webview.html = __problem["html"];
 
   return panel;
@@ -403,15 +404,28 @@ function finishTesting() {
 }
 
 async function setProblem(problem) {
-  
   startTime = new Date();
   endTime = new Date();
-  endTime.setMinutes(endTime.getMinutes()+20)
-  var t = startTime.getHours() +"hr "+startTime.getMinutes() +"min " + startTime.getSeconds() + "sec";
-  var te = endTime.getHours() +"hr "+endTime.getMinutes() +"min " + endTime.getSeconds() + "sec";
+  endTime.setMinutes(endTime.getMinutes() + 20);
+  var t =
+    startTime.getHours() +
+    "hr " +
+    startTime.getMinutes() +
+    "min " +
+    startTime.getSeconds() +
+    "sec";
+  var te =
+    endTime.getHours() +
+    "hr " +
+    endTime.getMinutes() +
+    "min " +
+    endTime.getSeconds() +
+    "sec";
   setTimeout(end, config.timerLength);
   vscode.window.showInformationMessage("You started at " + t);
-  vscode.window.showInformationMessage("You have until  " + te + " to complete all tests");
+  vscode.window.showInformationMessage(
+    "You have until  " + te + " to complete all tests"
+  );
 
   current = 0;
   __problem = problem;
@@ -450,15 +464,16 @@ function getFailingTestDetails(failingTestID) {
   if (failingTestID.length === 0) {
     return "";
   }
-  console.log("DEBUG 3: failingTestID = ", failingTestID)
+  console.log("DEBUG 3: failingTestID = ", failingTestID);
   let result = "<h2>Failed Tests:</h2><ul>";
   for (let i = 0; i < failingTestID.length; i++) {
-    result += `<li>Input: ${__problem.testCases[failingTestID[i]]} <br>Expected Output: ${__problem.answers[failingTestID[i]]}`
+    result += `<li>Input: ${
+      __problem.testCases[failingTestID[i]]
+    } <br>Expected Output: ${__problem.answers[failingTestID[i]]}`;
   }
-  result += "</ul>"
+  result += "</ul>";
   return result;
 }
-
 
 function writeState() {
   // console.log(events);

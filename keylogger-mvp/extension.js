@@ -11,6 +11,7 @@ const { prependOnceListener } = require("process");
 const { fstat } = require("fs");
 const { time } = require("console");
 const { privateEncrypt } = require("crypto");
+const { win32 } = require("path");
 const _serverURL = config.serverURL;
 let __userID = undefined;
 let __problemID = undefined;
@@ -168,19 +169,23 @@ async function authenticate(triedBefore = false) {
 
 function runTest() {
   if (isActive) {
-    const pathOfPy = `${__dirname}/exec/`;
+    let pathOfPy = (os.platform() === 'win32')? `${__dirname}\\exec\\`:`${__dirname}/exec/`;
+    if (os.platform() == 'win32')
+      pathOfPy.replace(/\//g, "\\")
     const fs = require("fs");
     let json = JSON.stringify({ problem: __problem });
     fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
       if (err) {
         console.log(err);
       }
-      const uri = vscode.window.activeTextEditor.document.uri
+      let uri = decodeURIComponent(vscode.window.activeTextEditor.document.uri.toString())
         .toString()
         .substring(7);
+        uri = (os.platform() === "win32")? uri.substring(1).replace(/\//g, "\\"):uri
       if (language.toLowerCase() === "python") {
         exec(
           `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+          (os.platform() === "win32")? {'shell':'powershell.exe'}: {},
           (err, stdout, stderr) => {
             if (err || stderr) {
               console.log(err);

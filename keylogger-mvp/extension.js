@@ -26,6 +26,7 @@ var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
+let timer;
 
 const log = true;
 const start = Date.now();
@@ -102,6 +103,7 @@ function activate(context) {
     "keylogger-mvp.stopTesting",
     () => {
       isActive = false;
+      clearTimeout(timer)
       writeState();
       finishTesting();
       survey();
@@ -424,7 +426,7 @@ async function setProblem(problem) {
     "min " +
     endTime.getSeconds() +
     "sec";
-  setTimeout(end, config.timerLength);
+  timer = setTimeout(end, config.timerLength);
   vscode.window.showInformationMessage("You started at " + t);
   vscode.window.showInformationMessage(
     "You have until  " + te + " to complete all tests"
@@ -444,6 +446,7 @@ async function nextTest() {
     title: "Choose Problem Name",
     prompt: "Not providing a name will result in a random problem",
   });
+  clearTimeout(timer)
   setProblem(await fetchProblem(problemName));
   rightWindow = init();
 }

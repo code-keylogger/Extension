@@ -199,9 +199,8 @@ function runTest() {
                   writeState();
                   finishTesting();
                   survey();
+                }
               }
-              }
-            }
             updateStatus();
           }
         );

@@ -11,7 +11,7 @@ finish they will open the Command Palette and type in 'Stop Testing'. Once this 
 the user will be prompted to copy the link to a survey and fill out it out in browser.
 
 ## Using the Extension
-1. Install the `.vsix` extension file into your instance of VSCode.
+1. Install the `.vsix` extension (accessible in the releases pane of Github) file into your instance of VSCode.
     a. Navigate to the extensions tab on the left of the window.
     b. Click the `...` in the upper right
     c. Select "install from vsix"

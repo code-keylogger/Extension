@@ -26,8 +26,7 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+            <pre class="prettyprint source linenums"><code>const config = require("./pluginConfig.json");
 
 const vscode = require("vscode");
 const request = require("request");
@@ -35,21 +34,28 @@ const { initParams } = require("request");
 const path = require("path");
 const os = require("os");
 const { exec } = require("child_process");
-const { throws, rejects } = require("assert");
+const { throws, rejects, fail } = require("assert");
 const { prependOnceListener } = require("process");
 const { fstat } = require("fs");
-const _serverURL = "http://virulent.cs.umd.edu:3000";
+const { time } = require("console");
+const { privateEncrypt } = require("crypto");
+const { win32 } = require("path");
+const _serverURL = config.serverURL;
 let __userID = undefined;
 let __problemID = undefined;
 let __problem = undefined;
 let language;
+let isActive = false;
+let failingTestID = [];
 const pyvers = os.platform() === "win32" ? "python" : "python3";
 
+var startTime;
+var endTime;
 let current = 0;
 let total = 0;
 let rightWindow;
+let timer;
 
-// TODO: for testing purposes
 const log = true;
 const start = Date.now();
 let events = [];
@@ -106,20 +112,15 @@ function activate(context) {
     // When the "Start Testing" command is run this arrow function gets run
     async () => {
       // Calls the function to authenticate the email
-      //   let problem;
-      //  await vscode.window.showInputBox({
-      //     title: "Choose Problem Name",
-      //     prompt: "Not providing a name will result in a random problem",
-      //   }).then(val => { return val });
+      isActive = true;
       authenticate();
-      setProblem(await fetchProblem());
-      runTest();
     }
   );
 
   let next = vscode.commands.registerCommand(
     "keylogger-mvp.nextTest",
     async () => {
+      events = [];
       nextTest();
       runTest();
     }
@@ -129,6 +130,8 @@ function activate(context) {
     // When the "Stop Testing" command is run this arrow function gets run
     "keylogger-mvp.stopTesting",
     () => {
+      isActive = false;
+      clearTimeout(timer)
       writeState();
       finishTesting();
       survey();
@@ -141,13 +144,20 @@ function activate(context) {
   context.subscriptions.push(closing);
 }
 
+function end() {
+  vscode.window.showInformationMessage("You have run out of time");
+  writeState();
+  finishTesting();
+  survey();
+}
+
 /**
  * Once the program finishes testing this function is called to prompt the user to fill out a survey.
  * @inner
  */
 function survey() {
   vscode.window.showInformationMessage(
-    "Please follow this link to fill out a survey about your experience."
+    `Please fill out a survey here: ${config.surveyLink}`
   );
 }
 
@@ -160,7 +170,7 @@ async function authenticate(triedBefore = false) {
     title = "Incorrect information... Try again";
   }
 
-  await vscode.window
+  vscode.window
     .showInputBox({
       title,
       prompt,
@@ -173,12 +183,13 @@ async function authenticate(triedBefore = false) {
       } catch (e) {
         console.log(e);
       }
-
       if (isAuth &amp;&amp; isAuth.userid) {
         (__userID = isAuth.userid),
+          setProblem(await fetchProblem()),
           (rightWindow = init()),
           recordKeyPresses(),
           recordCursorMovements();
+        runTest();
         // If email is wrong have them restart and try again
       } else {
         authenticate(true);
@@ -187,38 +198,54 @@ async function authenticate(triedBefore = false) {
 }
 
 function runTest() {
-  // var currentlyOpenTabfilePath = vscode.window.activeTextEditor.document.fileName;
-  const pathOfPy = `${__dirname}/exec/`;
-  const fs = require("fs");
-  let json = JSON.stringify({ problem: __problem });
-  fs.writeFile(`${pathOfPy}/prob.json`, json, (err) => {
-    if (err){
-      console.log(err)
-    }
-    const uri = vscode.window.activeTextEditor.document.uri
-      .toString()
-      .substring(7);
-    if (language.toLowerCase() === "python") {
-      exec(
-        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
-        (err, stdout, stderr) => {
-          if (err || stderr) {
-            console.log(err);
-            current = 0;
-          } else current = total - stdout.split("\n").length + 1;
-        }
-      );
-    } else if (language.toLowerCase() === "coq") {
-      exec(
-        `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; coqc run.v`,
-        (err, stdout, stderr) => {
+  if (isActive) {
+    let pathOfPy = (os.platform() === 'win32')? `${__dirname}\\exec\\`:`${__dirname}/exec/`;
+    if (os.platform() == 'win32')
+      pathOfPy.replace(/\//g, "\\")
+    const fs = require("fs");
+    let json = JSON.stringify({ problem: __problem });
+    fs.writeFileSync(`${pathOfPy}/prob.json`, json) 
+      let uri = decodeURIComponent(vscode.window.activeTextEditor.document.uri.toString())
+        .toString()
+        .substring(7);
+        uri = (os.platform() === "win32")? uri.substring(1).replace(/\//g, "\\"):uri
+      if (language.toLowerCase() === "python") {
+        exec(
+          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}; ${pyvers} exec.py`,
+          (os.platform() === "win32")? {'shell':'powershell.exe'}: {},
+          (err, stdout, stderr) => {
+            if (err || stderr) {
+              console.log(err);
+              current = 0;
+              failingTestID = [];
+              for (let i = 0; i &lt; __problem.testCases.length; i++) {
+                failingTestID.push(i);
+              }
+            } else {
+                failingTestID = stdout.split("\n");
+                failingTestID.pop();
+                current = total - failingTestID.length;
+                if (current == total) {
+                  writeState();
+                  finishTesting();
+                  survey();
+                }
+              }
+          }
+        );
+      } else if (language.toLowerCase() === "coq") {
+        exec(
+          `cd ${pathOfPy}; ${pyvers} replacer.py ${uri}`,
+          (err, stdout, stderr) => {}
+        );
+        exec(`coqc ${pathOfPy}run.v`, (err, stdout, stderr) => {
           if (err || stderr) {
             current = 0;
           } else current = 1;
-        }
-      );
-    }
-  });
+        });
+      }
+      updateStatus();
+  }
 }
 
 // This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
@@ -315,7 +342,8 @@ function init() {
     vscode.ViewColumn.Three
   );
 
-  panel.webview.html = getWebViewContent(current, total);
+  panel.webview.html =
+    "&lt;h2>Start typing your solution and tests will be executed automatically&lt;/h2>";
   panel2.webview.html = __problem["html"];
 
   return panel;
@@ -323,41 +351,44 @@ function init() {
 
 function recordKeyPresses() {
   // On document change handle event
-  vscode.workspace.onDidChangeTextDocument((event) => {
-    // For each content change store the location in file, changed text and time of event
-    event.contentChanges.forEach((contentChange) => {
-      const e = {
-        startLine: contentChange.range.start.line,
-        startChar: contentChange.range.start.character,
-        endLine: contentChange.range.start.line,
-        endChar: contentChange.range.end.character,
-        textChange: contentChange.text,
-        testsPassed: [],
-        time: Date.now(),
-      };
-      events.push(e);
-      vscode.workspace.saveAll(true);
-      runTest();
-      updateStatus();
+  if (isActive) {
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      // For each content change store the location in file, changed text and time of event
+      event.contentChanges.forEach((contentChange) => {
+        const e = {
+          startLine: contentChange.range.start.line,
+          startChar: contentChange.range.start.character,
+          endLine: contentChange.range.start.line,
+          endChar: contentChange.range.end.character,
+          textChange: contentChange.text,
+          testsPassed: [],
+          time: Date.now(),
+        };
+        events.push(e);
+        vscode.workspace.saveAll(true);
+        runTest();
+      });
     });
-  });
+  }
 }
 
 // records the position of the cursor inside the text box
 function recordCursorMovements() {
-  vscode.window.onDidChangeTextEditorSelection((event) => {
-    event.selections.forEach((selection) => {
-      const e = {
-        active: selection.active,
-        anchor: selection.anchor,
-        end: selection.end,
-        isReversed: selection.isReversed,
-        start: selection.start,
-      };
-      // Push events to queue
-      events.push(e);
+  if (isActive) {
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      event.selections.forEach((selection) => {
+        const e = {
+          active: selection.active,
+          anchor: selection.anchor,
+          end: selection.end,
+          isReversed: selection.isReversed,
+          start: selection.start,
+        };
+        // Push events to queue
+        events.push(e);
+      });
     });
-  });
+  }
 }
 
 /**
@@ -398,10 +429,33 @@ async function fetchProblem(userID, problemName) {
 }
 
 function finishTesting() {
-  return true;
+  events = [];
 }
 
-function setProblem(problem) {
+async function setProblem(problem) {
+  startTime = new Date();
+  endTime = new Date();
+  endTime.setMinutes(endTime.getMinutes() + 20);
+  var t =
+    startTime.getHours() +
+    "hr " +
+    startTime.getMinutes() +
+    "min " +
+    startTime.getSeconds() +
+    "sec";
+  var te =
+    endTime.getHours() +
+    "hr " +
+    endTime.getMinutes() +
+    "min " +
+    endTime.getSeconds() +
+    "sec";
+  timer = setTimeout(end, config.timerLength);
+  vscode.window.showInformationMessage("You started at " + t);
+  vscode.window.showInformationMessage(
+    "You have until  " + te + " to complete all tests"
+  );
+
   current = 0;
   __problem = problem;
   __problemID = problem._id;
@@ -416,6 +470,7 @@ async function nextTest() {
     title: "Choose Problem Name",
     prompt: "Not providing a name will result in a random problem",
   });
+  clearTimeout(timer)
   setProblem(await fetchProblem(problemName));
   rightWindow = init();
 }
@@ -430,12 +485,26 @@ function getWebViewContent(passing, tests) {
   &lt;/head>
   &lt;body>
       &lt;h1> Passing ${passing}/${tests} tests! &lt;/h1>
+      ${getFailingTestDetails(failingTestID)}
   &lt;/body>
   &lt;/html>`;
 }
 
+function getFailingTestDetails(failingTestID) {
+  if (failingTestID.length === 0) {
+    return "";
+  }
+  let result = "&lt;h2>Failed Tests:&lt;/h2>&lt;ul>";
+  for (let i = 0; i &lt; failingTestID.length; i++) {
+    result += `&lt;li>Input: ${
+      __problem.testCases[failingTestID[i]]
+    } &lt;br>Expected Output: ${__problem.answers[failingTestID[i]]}`;
+  }
+  result += "&lt;/ul>";
+  return result;
+}
+
 function writeState() {
-  console.log(events);
   if (!log) return;
   request.post(
     `${_serverURL}/save`,
@@ -473,7 +542,7 @@ function writeState() {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Dec 08 2022 02:08:16 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Dec 08 2022 02:26:14 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -53,39 +53,46 @@ After that the extension will begin recording the user's actions and the user wi
 be able to see their problem question and how many tests they are passing. Once they
 finish they will open the Command Palette and type in 'Stop Testing'. Once this is complete
 the user will be prompted to copy the link to a survey and fill out it out in browser.</p>
-<h2>Using the extension</h2>
+<h2>Using the Extension</h2>
 <ol>
-<li>Install the .vsix extension into your instance of VSCode</li>
-<li>Make sure you have all the language's you will be using to solve problems installed on your local machine
-as that will be required to run the tests</li>
-<li>Start testing by pressing <code>f1</code> followed by <code>Start Testing</code></li>
-<li>To finish testing press <code>f1</code> followed by <code>Stop Testing</code></li>
+<li>Install the <code>.vsix</code> extension file into your instance of VSCode.
+a. Navigate to the extensions tab on the left of the window.
+b. Click the <code>...</code> in the upper right
+c. Select &quot;install from vsix&quot;
+d. Select the file</li>
+<li>Make sure you have all the languages you will be using to solve problems installed on your local machine and referenced in your <code>$PATH</code>.</li>
+<li>Start testing by pressing <code>f1</code> followed by <code>Start Testing</code>. You will be prompted to enter your email to procede. (This must be the email provided to your admin)</li>
+<li>Open a new file to start writing <code>File &gt; New File</code> the file can be any type you want, but we suggest you use the language you will be writing in so that you get syntax highlighting.</li>
+<li>To move on to a following test press <code>f1</code> followed by <code>Next Test</code>.</li>
+<li>When a problem is finished you can hit <code>f1 -&gt; Stop Testing</code> to stop your session, or the session will automatically stop when you have passed all the tests.</li>
+<li>You will be prompted with a survey upon the completion of a problem to leave your feedback.</li>
 </ol>
-<h2>Quick Start</h2>
+<h2>Developing and Altering the Extension</h2>
+<h3>Simple Config</h3>
 <ol>
-<li>If you have not already installed the packages cd into keylogger-mvp and run 'npm i'</li>
+<li>To change the survey link, time limit, or any other configuration parameters make changes in <code>keylogger-mvp &gt; pluginConfig.json</code>.</li>
+<li>When changes have been made you simply repackage the plugin by running <code>vsce package</code> from the <code>keylogger-mvp/</code> directory.</li>
+</ol>
+<h3>Debugging and Further Developement</h3>
+<ol>
+<li>
+<p>To add additional features or fix any bugs you can make changes (likely to <code>extension.js</code>) from there you can debug the plugin.</p>
+<ol>
+<li>If you have not already installed the packages cd into keylogger-mvp and run <code>npm i</code></li>
 <li>Open vscode and navigate your path to where extension.js is located</li>
-<li>Once there run your f5 command or manually run extension.js either with or without debugging</li>
+<li>Once there run your <code>f5</code> command or manually run extension.js either with or without debugging</li>
 <li>Once the new window opens, Open the command palette (ctrl + shift + p in windows)</li>
-<li>Type in Start Testing and press enter</li>
-<li>Enter your email address in the window prompt, once typed press enter</li>
-<li>Choose the language you are using by either selecting or typing one of the dropdown languages</li>
-<li>Choose the problem set you are using by either selecting or typing one of the dropdown problem sets</li>
-<li>Write your code once the problem appears</li>
-<li>When finished open the command palette and type Stop Testing and press enter</li>
-<li>A survey will prompt please copy the link into your browser and fill out the survey</li>
-<li>If you wish to use the extension again please exit out and begin from step 2 (Assuming you still have the packages installed)</li>
+<li>Type in <code>Start Testing</code> and press <code>enter</code></li>
 </ol>
-<h2>Running extension.js Documentation Locally</h2>
-<p>If you wish to view the documentation for this program in webpage format please follow the steps bellow:</p>
+</li>
+<li>
+<p>To add additional language support you must:</p>
 <ol>
-<li>Where extension.js is located along your path run  './node_modules/.bin/jsdoc .\extension.js'
-or include 'Path To README.md \README.md' after '.\extension.js' in order to view this README.md on the Home page. (Recommended)
-ie: './node_modules/.bin/jsdoc .\extension.js path\to\readme\README.md\README.md'</li>
-<li>This will create a folder called out.</li>
-<li>Ensure your machine has the ability to open html files in browser.</li>
-<li>Right click on extension.js.html and select the option &quot;Open In Default Browser&quot;.
-or however you wish to open the html file.</li>
+<li>Add a new &quot;runner file&quot; in the <code>exec</code> directory. Follow the example of <code>compile.py</code></li>
+<li>Add a new case to the <code>replacer.py</code> file</li>
+<li>Handle the new language in <code>runTest()</code> within <code>extension.js</code></li>
+</ol>
+</li>
 </ol></article>
     </section>
 
@@ -103,7 +110,7 @@ or however you wish to open the html file.</li>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Dec 08 2022 02:08:16 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Thu Dec 08 2022 02:26:14 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>

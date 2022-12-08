@@ -488,7 +488,7 @@ async function nextTest() {
  * Creates the window to display the tests and if they are passing or not.
  * @param {any} passing 
  * @param {any} tests 
- * @returns 
+ * @returns a vscode web panel
  * @inner
  */
 function getWebViewContent(passing, tests) {
@@ -509,7 +509,7 @@ function getWebViewContent(passing, tests) {
 /**
  * Returns the details of all the tests that are failing
  * @param {any} failingTestID 
- * @returns 
+ * @returns result of failed tests
  * @inner
  */
 function getFailingTestDetails(failingTestID) {
@@ -528,7 +528,6 @@ function getFailingTestDetails(failingTestID) {
 
 /**
  * Writes the state in a post request to the server.
- * @returns 
  * @inner
  */
 function writeState() {

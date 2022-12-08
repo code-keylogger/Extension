@@ -47,6 +47,7 @@ const register = (email) => {
   return res;
 };
 
+
 function isAuthenticated(email) {
   return new Promise((res, rej) => {
     request.post(
@@ -75,6 +76,7 @@ function isAuthenticated(email) {
  * It begins with the command  Start Testing.
  * and ends with the command Stop Testing in the Command Palette.
  * @param {vscode.ExtensionContext} context
+ * @inner
  */
 function activate(context) {
   let disposable = vscode.commands.registerCommand(
@@ -129,8 +131,11 @@ function survey() {
     `Please fill out a survey here: ${config.surveyLink}`
   );
 }
-
-// Displays a text box for user input
+/**
+ * Displays a text box for user input
+ * @param {boolean} triedBefore 
+ * @inner
+ */
 async function authenticate(triedBefore = false) {
   let title = "Enter Your email";
   let prompt = "Enter your email";
@@ -166,6 +171,11 @@ async function authenticate(triedBefore = false) {
     });
 }
 
+/**
+ * Runs tests on a users local machine to check to see if they are passing
+ * the test they are on.
+ * @inner
+ */
 function runTest() {
   if (isActive) {
     const pathOfPy = `${__dirname}/exec/`;
@@ -217,7 +227,10 @@ function runTest() {
   }
 }
 
-// This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
+/**
+ * This method is called when the extension is deactivated, it is unreliable and most cleanup should be done on "Stop Testing"
+ * @inner
+ */
 function deactivate() {}
 
 module.exports = {
@@ -318,6 +331,10 @@ function init() {
   return panel;
 }
 
+/**
+ * Records a users key press for any text change to the document.
+ * @inner
+ */
 function recordKeyPresses() {
   // On document change handle event
   if (isActive) {
@@ -341,7 +358,11 @@ function recordKeyPresses() {
   }
 }
 
-// records the position of the cursor inside the text box
+
+/**
+ * Records the position of the cursor inside the text box
+ * @inner
+ */
 function recordCursorMovements() {
   if (isActive) {
     vscode.window.onDidChangeTextEditorSelection((event) => {
@@ -397,10 +418,21 @@ async function fetchProblem(userID, problemName) {
   });
 }
 
+/**
+ * This is used to create an empty event upon the end of testing.
+ * @inner
+ */
 function finishTesting() {
   events = [];
 }
 
+/**
+ * This sets the problem to be displayed as well as creates a timer that will be 
+ * set the amount of time allotted to finish the test. The timer resets every time
+ * a new problem appears.
+ * @param {any} problem 
+ * @inner
+ */
 async function setProblem(problem) {
   startTime = new Date();
   endTime = new Date();
@@ -433,6 +465,11 @@ async function setProblem(problem) {
   else total = __problem.testCases.length;
 }
 
+/**
+ * A user inputs into an Input Box the next problem they will do. If they
+ * do not specify a test a random one is chosen.
+ * @inner
+ */
 async function nextTest() {
   writeState();
   let problemName = await vscode.window.showInputBox({
@@ -443,6 +480,13 @@ async function nextTest() {
   rightWindow = init();
 }
 
+/**
+ * Creates the window to display the tests and if they are passing or not.
+ * @param {any} passing 
+ * @param {any} tests 
+ * @returns 
+ * @inner
+ */
 function getWebViewContent(passing, tests) {
   return `<!DOCTYPE html>
   <html lang="en">
@@ -458,6 +502,12 @@ function getWebViewContent(passing, tests) {
   </html>`;
 }
 
+/**
+ * Returns the details of all the tests that are failing
+ * @param {any} failingTestID 
+ * @returns 
+ * @inner
+ */
 function getFailingTestDetails(failingTestID) {
   if (failingTestID.length === 0) {
     return "";
@@ -472,6 +522,11 @@ function getFailingTestDetails(failingTestID) {
   return result;
 }
 
+/**
+ * Writes the state in a post request to the server.
+ * @returns 
+ * @inner
+ */
 function writeState() {
   if (!log) return;
   request.post(
